@@ -371,7 +371,7 @@ res_inf:=function(w,Q,r,W0,Winf,Ginf,Jinf,Tinfinv)
 end function;
 
 
-basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU)
+basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
   
   // Compute a basis for H^1(X).
 
@@ -515,16 +515,20 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU)
 
   cobound:=sub<cocyc|list>;
 
-  b0:=Basis(forms1stkind);
-  
+  if b0 eq 0 then
+    b0:=Basis(forms1stkind);
+  end if;  
+
   b4:=[];
   for i:=2 to dimB0nBinf do
     b4:=Append(b4,E0!list[i]);
   end for;
   
   dualspace:=Complement(cocyc,forms1stkind+cobound); // Take the dual w.r.t. cup product? Right now just any complement, seems sufficient.
-  b1:=Basis(dualspace);
-  
+  if b1 eq 0 then
+    b1:=Basis(dualspace);
+  end if;  
+
   basisH1X:=b0 cat b1;
   dimH1X:=#basisH1X;
   
@@ -541,16 +545,14 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU)
     dim:=dimH1X;
   end if;
 
-  denom:=1;
   for i:=1 to dim do
+    denom:=1;
     for j:=1 to dimE0 do
       denom:=LCM(denom,Denominator(b[i][j]));
     end for;
-  end for;
-  for i:=1 to dim do
     b[i]:=denom*b[i];
   end for;
-
+  
   matb:=Matrix(b);
   quo_map:=matb^(-1);
 

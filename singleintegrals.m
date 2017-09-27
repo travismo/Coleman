@@ -215,7 +215,7 @@ end function;
 minpoly:=function(f1,f2)
 
   // computes the minimum polynomial of f2 over Q(f1), where
-  // f1,f2 are elements of a 1 dimensional functionfield over Q
+  // f1,f2 are elements of a 1 dimensional function field over Q
 
   FF:=Parent(f1);
   d1:=Degree(f1);
@@ -555,10 +555,15 @@ hensel_lift:=function(fy,root);
 end function;
 
 
+/*
 mod_p_prec:=function(fy)
 
   // Finds the t-adic precision necessary to separate the roots
-  // of the polynomial fy over Qp[[t]] modulo p.
+  // of the polynomial fy over Qp[[t]] modulo p and start Hensel lift.
+
+  // Breaks down in some cases because of problem with 
+  // Magma intrinsic Roots, temporarily replaced by something
+  // more naive.
 
   Kty:=Parent(fy);
   Kt:=BaseRing(Kty);
@@ -597,6 +602,65 @@ mod_p_prec:=function(fy)
 
   return modpprec;
 
+end function;
+*/
+
+
+mod_p_prec:=function(fy);
+
+  // Finds the t-adic precision necessary to separate the roots
+  // of the polynomial fy over Qp[[t]] modulo p and start Hensel lift.
+  //
+  // Temporarily uses intrinsic Factorisation instead of 
+  // intrinsic Roots because of multiple problems with Roots.
+
+  Kty:=Parent(fy);
+  Kt:=BaseRing(Kty);
+  tprec:=Precision(Kt);
+  K:=BaseRing(Kt);
+  p:=Prime(K);
+  Fp:=FiniteField(p);
+  Fpt:=PowerSeriesRing(Fp,tprec);
+  Fpty:=PolynomialRing(Fpt);
+
+  fymodp:=Fpty!fy;
+  derfymodp:=Derivative(fymodp);
+
+  zeros:=[];
+  fac:=Factorisation(fymodp);
+  for i:=1 to #fac do
+    if fac[i][2] gt 1 then
+      error "t-adic precision not high enough";
+    end if;
+    factor:=fac[i][1];
+    if Degree(factor) eq 1 and LeadingCoefficient(factor) eq 1 then
+      zeros:=Append(zeros,-Coefficient(factor,0));
+    end if;
+  end for;
+
+  modpprec:=1;
+  for i:=1 to #zeros do
+    done:=false;
+    prec:=1;
+    while not done do
+      v1:=Valuation(Evaluate(fymodp,ChangePrecision(zeros[i],prec)));
+      v2:=Valuation(Evaluate(derfymodp,ChangePrecision(zeros[i],prec)));
+      if Minimum(prec,v1) gt 2*v2 then
+        done:=true;
+      end if;
+      prec:=prec+1;
+    end while;
+    modpprec:=Maximum(modpprec,prec);
+  end for;
+
+  for i:=1 to #zeros do
+    for j:=i+1 to #zeros do
+      modpprec:=Maximum(modpprec,Valuation(zeros[i]-zeros[j]));
+    end for;
+  end for;
+
+  return modpprec;
+ 
 end function;
 
 

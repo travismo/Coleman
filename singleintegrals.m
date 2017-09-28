@@ -1173,7 +1173,7 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
     error "the points do not lie in the same residue disk";
   end if;
 
-  if (x1 eq x2) and (b1 eq b2) then
+  if (Valuation(x1-x2) ge N*Degree(K)) and (Minimum([Valuation(b1[i]-b2[i]):i in [1..d]]) ge N*Degree(K)) then
     return RSpace(K,#basis)!0,N*Degree(K);
   end if;
 
@@ -1209,7 +1209,7 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   OKt:=LaurentSeriesRing(OK,prec);
 
   xt,bt,index:=local_coord(P1,prec,data);
-  
+
   Qt<t>:=LaurentSeriesRing(RationalField(),prec);
   xt:=Qt!xt;
   btnew:=[Qt|];
@@ -1274,6 +1274,8 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   end for;
 
   NtinyP1toP2:=tiny_integral_prec(prec,delta,maxpoleorder,maxdegree,mindegree,val,data);
+
+  // print "NtinyP1toP2", NtinyP1toP2; //
 
   return Vector(tinyP1toP2),NtinyP1toP2;
 

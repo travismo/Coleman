@@ -442,34 +442,20 @@ local_data:=function(P,data)
       bmodp[i]:=f;
     end for;
 
-    // compute values of b_j at places 
-      
-    values:=[];
-    for i:=1 to #places do
-      placei:=places[i];
-      bjplacei:=[];
-      for j:=1 to d do
-        bjplacei[j]:=Evaluate(bmodp[j],placei); // value of b^_j at i-th place 
-      end for;
-      values:=Append(values,bjplacei);
-    end for;
-
-    // identify the right place
-
-    v:=[];
-    for j:=1 to d do
-      v[j]:=Fp!b[j];
-    end for;
-    
     done:=false;
-    i:=1;
-    while (not done) and (i le #places) do  
-      if v eq values[i] then // P reduces to places[i] mod p
+
+    for i:=1 to #places do
+      same:=true;
+      for j:=1 to d do
+        if Evaluate(bmodp[j],places[i]) ne Fp!b[j] then
+          same:=false;
+        end if;
+      end for;    
+      if same then
         place:=places[i];
         done:=true;
       end if;
-      i:=i+1;
-    end while;
+    end for;
 
     if not done then
       error "Point does not lie on curve";
@@ -1275,8 +1261,6 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
 
   NtinyP1toP2:=tiny_integral_prec(prec,delta,maxpoleorder,maxdegree,mindegree,val,data);
 
-  // print "NtinyP1toP2", NtinyP1toP2; //
-
   return Vector(tinyP1toP2),NtinyP1toP2;
 
 end function;
@@ -1607,5 +1591,5 @@ coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
 
   NIP1P2:=Ceiling(NIP1P2);
 
-  return IP1P2,NIP1P2;//,tinyP1toS1,NP1toS1,tinyP2toS2,NP2toS2,tinyS1toFS1,NS1toFS1,tinyFS2toS2,NFS2toS2,f0iS1,Nf0iS1,f0iS2,Nf0iS2,finfiS1,NfinfiS1,finfiS2,NfinfiS2,fendiS1,NfendiS1,fendiS2,NfendiS2;
+  return IP1P2,NIP1P2; // ,tinyP1toS1,NP1toS1,tinyP2toS2,NP2toS2,tinyS1toFS1,NS1toFS1,tinyFS2toS2,NFS2toS2,f0iS1,Nf0iS1,f0iS2,Nf0iS2,finfiS1,NfinfiS1,finfiS2,NfinfiS2,fendiS1,NfendiS1,fendiS2,NfendiS2;
 end function;

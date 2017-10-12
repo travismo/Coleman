@@ -1153,13 +1153,13 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   // residue disk as P1 has to be specified.
 
   x1:=P1`x; x2:=P2`x; b1:=P1`b; b2:=P2`b; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; r:=data`r; basis:=data`basis; N:=data`N;
-  d:=Degree(Q); lc_r:=LeadingCoefficient(r); W:=Winf*W0^(-1); K:=Parent(x1);
+  d:=Degree(Q); lc_r:=LeadingCoefficient(r); W:=Winf*W0^(-1); K:=Parent(x1); 
 
   if not lie_in_same_disk(P1,P2,data) then
     error "the points do not lie in the same residue disk";
   end if;
 
-  if (Valuation(x1-x2) ge N*Degree(K)) and (Minimum([Valuation(b1[i]-b2[i]):i in [1..d]]) ge N*Degree(K)) then
+  if (Valuation(x1-x2)/Valuation(Parent(x1-x2)!p) ge N) and (Minimum([Valuation(b1[i]-b2[i])/Valuation(Parent(b1[i]-b2[i])!p):i in [1..d]]) ge N) then
     return RSpace(K,#basis)!0,N*Degree(K);
   end if;
 
@@ -1361,7 +1361,7 @@ end function;
 
 evalf0:=function(f0,P,data);
 
-  // TODO comment
+  // Evaluate vector of functions f0 at P.
  
   x0:=P`x; b:=P`b; Q:=data`Q; r:=data`r; W0:=data`W0; Winf:=data`Winf; N:=data`N; Nmax:=data`Nmax; p:=data`p;
   d:=Degree(Q); lcr:=LeadingCoefficient(r); K:=Parent(x0);
@@ -1410,7 +1410,7 @@ end function;
 
 evalfinf:=function(finf,P,data);
 
-  // TODO comment
+  // Evaluate vector of functions finf at P.
 
   x0:=P`x; b:=P`b; Q:=data`Q; W0:=data`W0; Winf:=data`Winf; N:=data`N; p:=data`p;
   d:=Degree(Q); K:=Parent(x0); 
@@ -1449,7 +1449,7 @@ end function;
 
 evalfend:=function(fend,P,data);
 
-  // TODO comment
+  // Evaluate vector of functions fend at P.
 
   x0:=P`x; b:=P`b; Q:=data`Q; W0:=data`W0; Winf:=data`Winf; N:=data`N;
   d:=Degree(Q);
@@ -1488,7 +1488,7 @@ end function;
 
 round_to_Qp:=function(L)
 
-  // rounds a vector over a totally ramified extension of Qp to one over Qp
+  // Rounds a vector over a totally ramified extension of Qp to one over Qp.
 
   K:=CoefficientRing(L);
   deg:=Degree(K);
@@ -1578,12 +1578,11 @@ coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
   end for; 
 
   mat:=(F-IdentityMatrix(RationalField(),#basis));
-  
   mat:=mat^-1;
   valmat:=Minimum([Valuation(e,p):e in Eltseq(mat)]);
   NIP1P2:=NIP1P2+valmat;                            // account for loss of precision multiplying by mat, TODO take error in mat into account as well
-  IS1S2:=Vector(I)*Transpose(ChangeRing(mat,K)); 
   
+  IS1S2:=Vector(I)*Transpose(ChangeRing(mat,K)); 
   IP1P2:=IS1S2+ChangeRing(tinyP1toS1,K)-ChangeRing(tinyP2toS2,K);
   IP1P2,Nround:=round_to_Qp(IP1P2);
 
@@ -1591,5 +1590,5 @@ coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
 
   NIP1P2:=Ceiling(NIP1P2);
 
-  return IP1P2,NIP1P2; // ,tinyP1toS1,NP1toS1,tinyP2toS2,NP2toS2,tinyS1toFS1,NS1toFS1,tinyFS2toS2,NFS2toS2,f0iS1,Nf0iS1,f0iS2,Nf0iS2,finfiS1,NfinfiS1,finfiS2,NfinfiS2,fendiS1,NfendiS1,fendiS2,NfendiS2;
+  return IP1P2,NIP1P2;
 end function;

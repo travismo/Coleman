@@ -18,7 +18,7 @@ P1:=set_point(0,3,data);  // not bad
 P2:=set_point(8,21,data); // not bad
 C:=coleman_integrals_on_basis(P1,P2,data);
 C;
-print "(-117821*5^2 + O(5^10) 1503616 + O(5^10))\n";
+print "(O(5^10) 6 + O(5^10))\n";
 
 print "//////////////////////////";
 print "// 1b. finite bad point //";
@@ -27,7 +27,7 @@ print "//////////////////////////\n";
 P3:=set_bad_point(1,[1,0],false,data); // finite bad
 C:=coleman_integrals_on_basis(P1,P3,data:delta:=51);
 C;
-print "(O(5^10) O(5^10))\n";
+print "(117821*5^2 + O(5^10) -300722*5 + O(5^10))\n";
 
 print "////////////////////////";
 print "// 1c. infinite point //";

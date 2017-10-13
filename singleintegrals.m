@@ -1359,6 +1359,17 @@ tiny_integrals_on_basis_to_z:=function(P,data:prec:=0);
 end function;
 
 
+pow:=function(x,k);
+
+  if k eq 0 then
+    return Parent(x)!1;
+  else
+    return x^k;
+  end if;
+
+end function;
+
+
 evalf0:=function(f0,P,data);
 
   // Evaluate vector of functions f0 at P.
@@ -1381,13 +1392,13 @@ evalf0:=function(f0,P,data);
       for j:=1 to #C do
         D:=Coefficients(C[j]);
         for k:=1 to #D do
-          f0P:=f0P+(K!D[k])*(1/x0)^(k-1)*z0^(val+j-1)*b[i];
+          f0P:=f0P+(K!D[k])*pow(1/x0,k-1)*pow(z0,val+j-1)*b[i];
         end for;
       end for;
     end for;
     Nf0P:=N*Degree(K)+(ord_inf_mat(Winv)+1)*Valuation(x0);
   else
-    z0:=Evaluate(r,x0)/lcr;  
+    z0:=Evaluate(r,x0)/lcr;   
     f0P:=K!0;
     for i:=1 to d do
       f0i:=f0[i];
@@ -1396,7 +1407,7 @@ evalf0:=function(f0,P,data);
       for j:=1 to #C do
         D:=Coefficients(C[j]);
         for k:=1 to #D do
-          f0P:=f0P+(K!D[k])*x0^(k-1)*z0^(val+j-1)*b[i];
+          f0P:=f0P+(K!D[k])*pow(x0,k-1)*pow(z0,val+j-1)*b[i];
         end for;
       end for;
     end for;
@@ -1424,7 +1435,7 @@ evalfinf:=function(finf,P,data);
       C:=Coefficients(finfi);
       val:=Valuation(finfi);
       for j:=1 to #C do
-        finfP:=finfP+(K!C[j])*(1/x0)^(val+j-1)*b[i];
+        finfP:=finfP+(K!C[j])*pow(1/x0,val+j-1)*b[i];
       end for;
     end for;
     NfinfP:=N*Degree(K)+p*(ord_0_mat(W)+1)*Valuation(x0);
@@ -1436,7 +1447,7 @@ evalfinf:=function(finf,P,data);
       C:=Coefficients(finfi);
       val:=Valuation(finfi);
       for j:=1 to #C do
-        finfP:=finfP+(K!C[j])*x0^(val+j-1)*b[i];
+        finfP:=finfP+(K!C[j])*pow(x0,val+j-1)*b[i];
       end for;
     end for;
     NfinfP:=N*Degree(K);
@@ -1465,7 +1476,7 @@ evalfend:=function(fend,P,data);
       fendi:=fend[i];
       C:=Coefficients(fendi);
       for j:=1 to #C do
-        fendP:=fendP+(K!C[j])*(1/x0)^(j-1)*b[i];
+        fendP:=fendP+(K!C[j])*pow(1/x0,j-1)*b[i];
       end for;
     end for;
     NfendP:=N*Degree(K)+(ord_0_mat(Winf)+1)*Valuation(x0);
@@ -1475,7 +1486,7 @@ evalfend:=function(fend,P,data);
       fendi:=fend[i];
       C:=Coefficients(fendi);
       for j:=1 to #C do
-        fendP:=fendP+(K!C[j])*x0^(j-1)*b[i];
+        fendP:=fendP+(K!C[j])*pow(x0,j-1)*b[i];
       end for;
     end for;
     NfendP:=N*Degree(K);

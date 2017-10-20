@@ -692,17 +692,19 @@ approx_root:=function(fy,y0,modpprec,expamodp)
         fznewroot:=fznewroot+Coefficient(Coefficient(fynewroot,j),k)*(Qz.1)^j*(Qzt.1)^k;
       end for;
     end for;
-    zeros:=Roots(Zpz!Coefficient(fznewroot,Valuation(fznewroot)));
+    fac:=Factorisation(Zpz!Coefficient(fznewroot,Valuation(fznewroot))); 
     count:=0;
-    for j:=1 to #zeros do
-      sol:=zeros[j][1];
-      if Fp!sol eq Coefficient(expamodp,i) then
-        count:=count+1;
-        coef:=sol;
+    for j:=1 to #fac do
+      if Degree(fac[j][1]) eq 1 then
+        sol:=-Coefficient(fac[j][1],0); // CHECK fac[j][1] always monic?
+        if Fp!sol eq Coefficient(expamodp,i) then
+          count:=count+1;
+          coef:=sol;
+        end if;
       end if;
     end for;
     if count ne 1 then // I think this should never happen, but let's keep this for now.
-      error "Coefficients in expansion of approximation coincide in Fp but not in Qp";
+      error "something is wrong, number of roots is different from 1";
     end if;
     root:=Evaluate(newroot,coef);
   end for;
@@ -990,6 +992,7 @@ local_coord:=function(P,prec,data);
           end for;
 
           fy:=Kty!D;
+
           derfy:=Derivative(fy);
 
           modpprec:=mod_p_prec(fy);
@@ -1054,13 +1057,20 @@ end function;
 
 find_bad_point_in_disk:=function(P,data);
 
-  // Find the bad point in the residue disk at P.
+  // Find the very bad point in the residue disk of a bad point P.
 
   x0:=P`x; b:=P`b; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; r:=data`r;
-  d:=Degree(Q); K:=Parent(x0); Ky:=PolynomialRing(K);
+  d:=Degree(Q); K:=Parent(x0); Ky:=PolynomialRing(K); 
 
   if not is_bad(P,data) then
     error "Residue disk does not contain a bad point";
+  end if;
+
+  if P`inf then
+    x0:=K!0;
+  else
+    rQp:=Ky!Coefficients(r);
+    x0:=HenselLift(rQp,x0);
   end if;
 
   Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
@@ -1073,72 +1083,97 @@ find_bad_point_in_disk:=function(P,data);
   end for;  
   FF:=FunctionField(f); // function field of curve
 
-  format:=recformat<x,b,inf,xt,bt,index>;
-  Pbad:=rec<format|>;
-  
-  if P`inf then // infinite point
-    Pbad`inf:=true;
-    x0:=K!0;
-    Pbad`x:=x0;
-    for i:=1 to d do
-      bi:=FF!0;
-      for j:=1 to d do
-        bi:=bi+Winf[i,j]*FF.1^(j-1);
-      end for;
-      poly:=minpoly(FF!(1/Qx.1),bi);
+  eP,index:=local_data(P,data);
 
-      C:=Coefficients(poly);
-      D:=[];
-      for i:=1 to #C do
-        D[i]:=Evaluate(C[i],x0); 
-      end for;
-      fy:=Ky!D;
-
-      zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
-      done:=false;
-      j:=1;
-      while not done and j le #zeros do
-        if Valuation(zeros[j][1]-b[i]) gt 0 then
-          done:=true;
-          b[i]:=zeros[j][1];
-        end if;
-        j:=j+1;
-      end while;
-    end for;
-    Pbad`b:=b;
-  else // finite bad point
-    Pbad`inf:=false;
-    rQp:=Ky!Coefficients(r);
-    x0:=HenselLift(rQp,x0);
-    Pbad`x:=x0;
-    for i:=1 to d do
-      bi:=FF!0;
-      for j:=1 to d do
-        bi:=bi+W0[i,j]*FF.1^(j-1);
-      end for;
-      poly:=minpoly(FF!Qx.1,bi);
-
-      C:=Coefficients(poly);
-      D:=[];
-      for i:=1 to #C do
-        D[i]:=Evaluate(C[i],x0); 
-      end for;
-      fy:=Ky!D;
-
-      zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
-      done:=false;
-      j:=1;
-      while not done and j le #zeros do
-        if Valuation(zeros[j][1]-b[i]) gt 0 then
-          done:=true;
-          b[i]:=zeros[j][1];
-        end if;
-        j:=j+1;
-      end while;
-      Pbad`b:=b;
-    end for;
-    
+  if P`inf then
+    W:=Winf;
+  else
+    W:=W0;
   end if;
+
+  bfun:=[];
+  for i:=1 to d do
+    bi:=FF!0;
+    for j:=1 to d do
+      bi:=bi+W[i,j]*FF.1^(j-1);
+    end for;
+    bfun:=Append(bfun,bi);
+  end for;
+
+  if index eq 0 then
+    if P`inf then
+      xfun:=FF!(1/Qx.1);
+    else
+      xfun:=FF!(Qx.1);
+    end if;
+
+    for i:=1 to d do
+      poly:=minpoly(xfun,bfun[i]);
+      C:=Coefficients(poly);
+      D:=[];
+      for i:=1 to #C do
+        D[i]:=Evaluate(C[i],x0); 
+      end for;
+      fy:=Ky!D;
+      fac:=Factorisation(fy);
+      done:=false;
+      j:=1;
+      while not done and j le #fac do
+        if Degree(fac[j][1]) eq 1 and Valuation(-Coefficient(fac[j][1],0)-b[i]) gt 0 then
+          done:=true;
+          b[i]:=-Coefficient(fac[j][1],0);
+        end if;
+        j:=j+1;
+      end while;
+    end for;
+  else
+   bindex:=bfun[index];
+   if P`inf then
+      xfun:=FF!(1/Qx.1);
+    else
+      xfun:=FF!(Qx.1);
+    end if;
+    poly:=minpoly(xfun,bindex);
+    C:=Coefficients(poly);
+    D:=[];
+    for i:=1 to #C do
+      D[i]:=Evaluate(C[i],x0); 
+    end for;
+    fy:=Ky!D;
+    fac:=Factorisation(fy);
+    done:=false;
+    j:=1;
+    while not done and j le #fac do
+      if Degree(fac[j][1]) eq 1 and Valuation(-Coefficient(fac[j][1],0)-b[index]) gt 0 then
+        done:=true;
+        b[index]:=-Coefficient(fac[j][1],0);
+      end if;
+      j:=j+1;
+    end while;
+    for i:=1 to d do
+      if i ne index then
+        poly:=minpoly(bindex,bfun[i]);
+        C:=Coefficients(poly);
+        D:=[];
+        for i:=1 to #C do
+          D[i]:=Evaluate(C[i],b[index]); 
+        end for;
+        fy:=Ky!D;
+        fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+        done:=false;
+        j:=1;
+        while not done and j le #fac do
+          if Degree(fac[j][1]) eq 1 and Valuation(-Coefficient(fac[j][1],0)-b[i]) gt 0 then
+            done:=true;
+            b[i]:=-Coefficient(fac[j][1],0);
+          end if;
+          j:=j+1;
+        end while;
+      end if;
+    end for; 
+  end if;
+
+  Pbad:=set_bad_point(x0,b,P`inf,data);
 
   return Pbad;
 

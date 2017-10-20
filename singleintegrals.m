@@ -507,17 +507,15 @@ hensel_lift:=function(fy,root);
   fy:=Qty!fy;
   derfy:=Derivative(fy);  
 
+  if not Valuation(LeadingCoefficient(Evaluate(derfy,root))) eq 0 then
+    error "In Hensel lift of power series, derivative has leading term divisible by p";
+  end if;
+
   v1:=Valuation(Qt!Zpt!Evaluate(fy,root));
   v2:=Valuation(Qt!Zpt!Evaluate(derfy,root));
 
   if not v1 gt 2*v2 then
     error "Condition Hensel's Lemma not satisfied";
-  end if;
-
-  if Qt!root eq 0 then
-    deg_root:=1;
-  else
-    deg_root:=Degree(Qt!root);
   end if;
 
   prec_seq:=[];

@@ -507,7 +507,7 @@ hensel_lift:=function(fy,root);
   fy:=Qty!fy;
   derfy:=Derivative(fy);  
 
-  if not Valuation(LeadingCoefficient(Evaluate(derfy,root))) eq 0 then
+  if not Valuation(LeadingCoefficient(Qt!Evaluate(derfy,root)),p) eq 0 then
     error "In Hensel lift of power series, derivative has leading term divisible by p";
   end if;
 

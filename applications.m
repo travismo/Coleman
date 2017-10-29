@@ -288,6 +288,9 @@ end function;
 
 Q_points:=function(data,bound);
 
+  // Returns a list (not guaranteed to be complete) of Q-rational points 
+  // upto height bound on the curve given by data.
+
   Q:=data`Q; p:=data`p; N:=data`N; r:=data`r; W0:=data`W0; Winf:=data`Winf;
   d:=Degree(Q);
 
@@ -307,6 +310,12 @@ Q_points:=function(data,bound);
   
   X:=Scheme(A2,QA2);
   pts:=PointSearch(X,bound);
+  xvalues:=[];
+  for i:=1 to #pts do
+    if not pts[i][1] in xvalues then
+      xvalues:=Append(xvalues,pts[i][1]);
+    end if;
+  end for;
 
   Qx:=RationalFunctionField(RationalField());
   Qxy:=PolynomialRing(Qx);
@@ -338,12 +347,12 @@ Q_points:=function(data,bound);
     binffun[i]:=bi;
   end for;
 
-  for i:=1 to #pts do
-    places:=Decomposition(FF,Zeros(Qx.1-pts[i][1])[1]);
-    if Valuation(pts[i][1],p) ge 0 then
+  for i:=1 to #xvalues do
+    places:=Decomposition(FF,Zeros(Qx.1-xvalues[i])[1]);
+    if Valuation(xvalues[i],p) ge 0 then
       for j:=1 to #places do
         if Degree(places[j]) eq 1 then
-          x:=pts[i][1];
+          x:=xvalues[i];
           b:=[];
           for k:=1 to d do
             b[k]:=Evaluate(b0fun[k],places[j]);
@@ -355,7 +364,7 @@ Q_points:=function(data,bound);
     else
       for j:=1 to #places do
         if Degree(places[j]) eq 1 then
-          x:=1/(pts[i][1]);
+          x:=1/xvalues[i];
           b:=[];
           for k:=1 to d do
             b[k]:=Evaluate(binffun[k],places[j]);
@@ -519,7 +528,7 @@ end function;
 vanishing_differentials:=function(points,data:e:=1);
 
   // Compute the regular one forms of which the 
-  // integrals vanish between all points in pts.
+  // integrals vanish between all points in points.
 
   Q:=data`Q; p:=data`p;
   

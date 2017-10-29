@@ -27,13 +27,13 @@ P8:=set_bad_point(0,[1,0,0],true,data);
 
 // Coleman integrals over divisors P-P1
 
-IP1P2,N2:=coleman_integrals_on_basis(P1,P2,data:delta:=20);
-IP1P3,N3:=coleman_integrals_on_basis(P1,P3,data:delta:=20);
-IP1P4,N4:=coleman_integrals_on_basis(P1,P4,data:delta:=20);
-IP1P5,N5:=coleman_integrals_on_basis(P1,P5,data:delta:=20);
-IP1P6,N6:=coleman_integrals_on_basis(P1,P6,data:delta:=20);
-IP1P7,N7:=coleman_integrals_on_basis(P1,P7,data:delta:=20);
-IP1P8,N8:=coleman_integrals_on_basis(P1,P8,data:delta:=20);
+IP1P2,N2:=coleman_integrals_on_basis(P1,P2,data:e:=20);
+IP1P3,N3:=coleman_integrals_on_basis(P1,P3,data:e:=20);
+IP1P4,N4:=coleman_integrals_on_basis(P1,P4,data:e:=20);
+IP1P5,N5:=coleman_integrals_on_basis(P1,P5,data:e:=20);
+IP1P6,N6:=coleman_integrals_on_basis(P1,P6,data:e:=20);
+IP1P7,N7:=coleman_integrals_on_basis(P1,P7,data:e:=20);
+IP1P8,N8:=coleman_integrals_on_basis(P1,P8,data:e:=20);
 
 K:=pAdicField(p,Minimum([N2,N3,N4,N5,N6,N7,N8]));
 M:=Matrix(3,1,Vector(K,[IP1P2[i]: i in [1..3]]));

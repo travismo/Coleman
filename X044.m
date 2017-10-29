@@ -12,4 +12,4 @@ data:=coleman_data(Q,p,N);
 P1:=set_point(1,1,data); // good point
 P2:=set_bad_point(0,[1,0,0,0,0],false,data); // very bad point
 
-coleman_integrals_on_basis(P1,P2,data:delta:=100);
+coleman_integrals_on_basis(P1,P2,data:e:=100);

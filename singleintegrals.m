@@ -54,7 +54,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
   // by Q at p to p-adic precision N.
 
   g:=genus(Q,p);
-  r,Delta,s:=auxpolys(Q);
+  r,e,s:=auxpolys(Q);
 
   if not smooth(r,p) then
     error "bad prime";
@@ -63,7 +63,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
   W0:=mat_W0(Q);
   Winf:=mat_Winf(Q);
 
-  G:=con_mat(Q,Delta,s);
+  G:=con_mat(Q,e,s);
   G0:=W0*Evaluate(G,Parent(W0[1,1]).1)*W0^(-1)+ddx_mat(W0)*W0^(-1);
   Ginf:=Winf*Evaluate(G,Parent(Winf[1,1]).1)*Winf^(-1)+ddx_mat(Winf)*Winf^(-1);
 
@@ -75,7 +75,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf);
 
-  frobmatb0r:=froblift(Q,p,Nmax-1,r,Delta,s,W0);
+  frobmatb0r:=froblift(Q,p,Nmax-1,r,e,s,W0);
 
   red_list_fin,red_list_inf:=red_lists(Q,p,Nmax,r,W0,Winf,G0,Ginf,e0,einf,J0,Jinf,T0,Tinf,T0inv,Tinfinv);
 
@@ -83,9 +83,9 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf>;
+  format:=recformat<Q,p,N,W0,Winf,r,e,s,G0,Ginf,e0,einf,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf>;
   out:=rec<format|>;
-  out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
+  out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`e:=e; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
 
@@ -1019,7 +1019,7 @@ local_coord:=function(P,prec,data);
 end function;
 
 
-tiny_integral_prec:=function(prec,delta,maxpoleorder,maxdegree,mindegree,val,data);
+tiny_integral_prec:=function(prec,e,maxpoleorder,maxdegree,mindegree,val,data);
 
   // Determines the p-adic precision to which tiny_integrals_on_basis is correct.
 
@@ -1027,28 +1027,28 @@ tiny_integral_prec:=function(prec,delta,maxpoleorder,maxdegree,mindegree,val,dat
 
   // Precision loss from terms of positive order we do consider:
 
-  m1:=N*delta-val;
+  m1:=N*e-val;
   for i:=1 to maxdegree do
-    m1:=Minimum(m1,N*delta+i-delta*Floor(Log(p,i+1)));
+    m1:=Minimum(m1,N*e+i-e*Floor(Log(p,i+1)));
   end for;  
 
   // Precision loss from terms we omit:
 
-  m2:=mindegree+2-delta*Floor(Log(p,mindegree+2));
-  for i:=mindegree+2 to Ceiling(delta/Log(p)) do
-    m2:=Minimum(m2,i+1-delta*Floor(Log(p,i+1)));
+  m2:=mindegree+2-e*Floor(Log(p,mindegree+2));
+  for i:=mindegree+2 to Ceiling(e/Log(p)) do
+    m2:=Minimum(m2,i+1-e*Floor(Log(p,i+1)));
   end for;
 
   // Precision loss from terms of negative order
 
-  m3:=N*delta-val;
+  m3:=N*e-val;
   if maxpoleorder ge 2 then
-    m3:=N*delta-val-maxpoleorder*val-delta*Floor(Log(p,maxpoleorder-1));
+    m3:=N*e-val-maxpoleorder*val-e*Floor(Log(p,maxpoleorder-1));
   end if;
 
   m:=Minimum([m1,m2,m3]);
 
-  return m/delta;
+  return m/e;
 
 end function;
 
@@ -1213,11 +1213,11 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
     return tinyPtoP2-tinyPtoP1,Minimum(NtinyPtoP2,NtinyPtoP1);
   end if;
 
-  delta:=Degree(Parent(x2));
+  e:=Degree(Parent(x2));
 
   if prec eq 0 then // no t-adic precision specified
     prec:=1;
-    while Floor(prec/delta)+1-Floor(Log(p,prec+1)) lt N do
+    while Floor(prec/e)+1-Floor(Log(p,prec+1)) lt N do
       prec:=prec+1;
     end while;
   end if;
@@ -1292,7 +1292,7 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
     end if;
   end for;
 
-  NtinyP1toP2:=tiny_integral_prec(prec,delta,maxpoleorder,maxdegree,mindegree,val,data);
+  NtinyP1toP2:=tiny_integral_prec(prec,e,maxpoleorder,maxdegree,mindegree,val,data);
 
   return Vector(tinyP1toP2),NtinyP1toP2;
 
@@ -1549,7 +1549,7 @@ round_to_Qp:=function(L)
 end function;
 
 
-coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
+coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   // Integrals of basis elements from P1 to P2. 
 
@@ -1557,7 +1557,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
   d:=Degree(Q); K:=Parent(x1); W:=Winf*W0^(-1);
 
   prec:=1;
-  while Floor(prec/delta)+1-Floor(Log(p,prec+1)) lt N do
+  while Floor(prec/e)+1-Floor(Log(p,prec+1)) lt N do
     prec:=prec+1;
   end while;
   prec:=Maximum([prec,-2*ord_0_mat(W)*data`einf,50]); // temporary, TODO look at this again
@@ -1569,7 +1569,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
     P1`index:=index; // to avoid recomputing
     Qp:=Parent(P1`x);
     Qpa<a>:=PolynomialRing(Qp);
-    K<a>:=TotallyRamifiedExtension(Qp,a^delta-p);
+    K<a>:=TotallyRamifiedExtension(Qp,a^e-p);
     format:=recformat<x,b,inf,xt,bt,index>;
     S1:=rec<format|>;                                                    
     S1`inf:=P1`inf;
@@ -1587,7 +1587,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:delta:=1)
     if not is_bad(P1,data) then
       Qp:=Parent(P2`x);
       Qpa<a>:=PolynomialRing(Qp);
-      K<a>:=TotallyRamifiedExtension(Qp,a^delta-p);
+      K<a>:=TotallyRamifiedExtension(Qp,a^e-p);
     end if;
     format:=recformat<x,b,inf,xt,bt,index>;
     S2:=rec<format|>;                                                    

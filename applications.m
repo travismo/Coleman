@@ -416,22 +416,24 @@ my_roots_Zpt:=function(f)
   
   Nf:=Precision(Zp);
   val:=Minimum([Valuation(e):e in Eltseq(f)]);
-
   Zp:=ChangePrecision(Zp,Nf-val);
   Zps:=PolynomialRing(Zp);
   
   f:=Zps![e/p^val :e in Eltseq(f)];
+
   i:=0;
+  zero:=false;
   done:=false;
   while not done do
     if Coefficient(f,i) ne 0 then
+      lcindex:=i;
       done:=true;
     end if;
     i:=i+1;
   end while;
-  if i gt 0 then
+  if lcindex gt 0 then
     coefs:=Coefficients(f);
-    for j:=i-1 to 1 by -1 do
+    for j:=1 to lcindex do
       coefs:=Remove(coefs,1);
     end for;
     f:=Zps!coefs;
@@ -567,8 +569,6 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1);
   // Find all common zeros of the integrals of the v[i] (vectors 
   // of length g) from P1 to points in the residue disk of P2.
 
-  // TODO: problem when P2 is bad but not very bad?
-
   Q:=data`Q; p:=data`p; N:=data`N; 
 
   g:=genus(Q,p);
@@ -576,7 +576,8 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1);
   IP1P2,NIP1P2:=coleman_integrals_on_basis(P1,P2,data:e:=e);
   tinyP2toz,xt,bt,NP2toz:=tiny_integrals_on_basis_to_z(P2,data:prec:=prec);
 
-  Zp:=pAdicRing(p,NIP1P2);
+  Nv:=Precision(Parent(v[1][1]));
+  Zp:=pAdicRing(p,Nv);
   Zpt:=PolynomialRing(Zp);
 
   zerolist:=[];

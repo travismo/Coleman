@@ -81,8 +81,11 @@ Qp_points:=function(data:points:=[]);
   // then be completed.
   
   Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; 
-  d:=Degree(Q); Fp:=FiniteField(p); Qp:=pAdicField(p,N); Qpy:=PolynomialRing(Qp);
+  d:=Degree(Q); Fp:=FiniteField(p); 
   Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
+
+  Nwork:=Ceiling(N*1.5); // Look at this again, how much precision loss in Roots()?
+  Qp:=pAdicField(p,Nwork); Qpy:=PolynomialRing(Qp);
 
   Fppts:=Fp_points(data);
   Qppts:=[];
@@ -564,6 +567,8 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1);
   // Find all common zeros of the integrals of the v[i] (vectors 
   // of length g) from P1 to points in the residue disk of P2.
 
+  // TODO: problem when P2 is bad but not very bad?
+
   Q:=data`Q; p:=data`p; N:=data`N; 
 
   g:=genus(Q,p);
@@ -610,11 +615,63 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1);
   pointlist:=[];
   for i:=1 to #zeroseq do
     z:=zeroseq[i];
-    x:=Evaluate(xt,p*z); 
-    b:=Eltseq(Evaluate(bt,p*z));
+    x:=Evaluate(xt,p*z);         
+    b:=Eltseq(Evaluate(bt,p*z)); 
     inf:=P2`inf; 
     P:=set_bad_point(x,b,P2`inf,data);
     pointlist:=Append(pointlist,P);
+  end for;
+
+  return pointlist;
+
+end function;
+
+
+effective_chabauty:=function(data,bound:e:=1);
+
+  // Carries out effective Chabauty for the curve given by data.
+  // First does a point search up to height bound. Then uses the
+  // points found to determine the vanishing differentials. Finally
+  // goes over all residue disks mapping to points on the reduction
+  // mod p and finds all common zeros of the vanishing differentials.
+
+  Qpoints:=Q_points(data,bound);
+  v:=vanishing_differentials(Qpoints,data:e:=e);
+  pointlist:=[];
+  Qppoints:=Qp_points(data:points:=Qpoints);
+  for i:=1 to #Qppoints do
+    pts:=zeros_on_disk(Qpoints[1],Qppoints[i],v,data:e:=e);
+    for j:=1 to #pts do
+      pointlist:=Append(pointlist,pts[j]);
+    end for;
+  end for;
+
+  return pointlist, v;
+
+end function;
+
+
+torsion_packet:=function(P,data,bound:e:=1);
+
+  // Compute the rational points in the torsion packet of P
+  // by computing the common zeros of the integrals of all
+  // regular 1-forms from P to an arbitrary point in a residue
+  // disk maping to points on the reduction mod p.
+
+  Q:=data`Q; p:=data`p; N:=data`N;
+  Qp:=pAdicField(p,N);
+
+  g:=genus(Q,p);
+  v:=RowSequence(IdentityMatrix(Qp,g));
+
+  Qpoints:=Q_points(data,bound);
+  pointlist:=[];
+  Qppoints:=Qp_points(data:points:=Qpoints);
+  for i:=1 to #Qppoints do
+    pts:=zeros_on_disk(P,Qppoints[i],v,data:e:=e);
+    for j:=1 to #pts do
+      pointlist:=Append(pointlist,pts[j]);
+    end for;
   end for;
 
   return pointlist;

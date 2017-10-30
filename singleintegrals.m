@@ -1221,7 +1221,7 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
       prec:=prec+1;
     end while;
   end if;
-  prec:=Maximum([prec,-2*ord_0_mat(W)*data`einf,50]); // temporary, look at this again
+  prec:=Maximum([prec,-2*ord_0_mat(W)*data`einf,100]); // temporary, look at this again
 
   Kt:=LaurentSeriesRing(K,prec);
   OK:=RingOfIntegers(K);

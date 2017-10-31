@@ -530,8 +530,8 @@ hensel_lift:=function(fy,root);
   for j:=1 to #prec_seq do
     root:=Qt!root;
     root:=ChangePrecision(root,prec_seq[j]);
-    root:=root-Evaluate(fy,root)/Evaluate(derfy,root);
-    root:=Kt!root;
+    root:=root-(Qt!Zpt!Evaluate(fy,root))/(Qt!Zpt!Evaluate(derfy,root));
+    root:=Zpt!root;
   end for;
 
   return root;

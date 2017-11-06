@@ -53,6 +53,10 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
   // Returns the Coleman data of (the projective nonsingular model of) the curve defined
   // by Q at p to p-adic precision N.
 
+  if not IsIrreducible(Q) then
+    error "Curve is not irreducible";
+  end if;
+
   g:=genus(Q,p);
   r,e,s:=auxpolys(Q);
 
@@ -675,39 +679,45 @@ approx_root:=function(fy,y0,modpprec,expamodp)
   Qz:=PolynomialRing(RationalField());
   Qzt:=PowerSeriesRing(Qz,tprec);
   
-  root:=Kt!y0;
-  for i:=1 to modpprec-1 do
-    newroot:=root+Kty.1*Kt.1^i;
-    C:=Coefficients(fy);
-    fynewroot:=Kty!0;
-    for i:=1 to #C do
-       fynewroot:=fynewroot+(Kt!C[i])*newroot^(i-1);
-    end for;
-    fynewroot:=Qty!Kty!fynewroot;
-    fznewroot:=Qzt!0;
-    for j:=0 to Degree(fynewroot) do
-      for k:=0 to tprec-1 do
-        fznewroot:=fznewroot+Coefficient(Coefficient(fynewroot,j),k)*(Qz.1)^j*(Qzt.1)^k;
+  roots:=[[*Kt!y0,1*]];
+  i:=1;
+  while i le #roots do
+    root:=roots[i][1];
+    Nroot:=roots[i][2];
+    if Nroot lt modpprec then
+      roots:=Remove(roots,i);
+      newroot:=root+Kty.1*Kt.1^Nroot;
+      C:=Coefficients(fy);
+      fynewroot:=Kty!0;
+      for j:=1 to #C do
+        fynewroot:=fynewroot+(Kt!C[j])*newroot^(j-1);
       end for;
-    end for;
-    fac:=Factorisation(Zpz!Coefficient(fznewroot,Valuation(fznewroot))); 
-    count:=0;
-    for j:=1 to #fac do
-      if Degree(fac[j][1]) eq 1 then
-        sol:=-Coefficient(fac[j][1],0); // CHECK fac[j][1] always monic?
-        if Fp!sol eq Coefficient(expamodp,i) then
-          count:=count+1;
-          coef:=sol;
+      fynewroot:=Qty!Kty!fynewroot;
+      fznewroot:=Qzt!0;
+      for j:=0 to Degree(fynewroot) do
+        for k:=0 to tprec-1 do
+          fznewroot:=fznewroot+Coefficient(Coefficient(fynewroot,j),k)*(Qz.1)^j*(Qzt.1)^k;
+        end for;
+      end for;
+      fac:=Factorisation(Zpz!Coefficient(fznewroot,Valuation(fznewroot)));
+      for j:=1 to #fac do
+        if (Degree(fac[j][1]) eq 1) and (Coefficient(fac[j][1],1) eq 1) then
+          sol:=-Coefficient(fac[j][1],0); 
+          if Fp!sol eq Coefficient(expamodp,Nroot) then
+            roots:=Insert(roots,i,[*Evaluate(newroot,sol),Nroot+1*]);
+          end if;
         end if;
-      end if;
-    end for;
-    if count ne 1 then // I think this should never happen, but let's keep this for now.
-      error "something is wrong, number of roots is different from 1";
+      end for;
+    else
+      i:=i+1;
     end if;
-    root:=Evaluate(newroot,coef);
-  end for;
-  
-  return root;
+  end while;
+
+  if #roots ne 1 then
+    error "something is wrong, number of roots is different from 1";
+  end if;
+
+  return roots[1][1];
 
 end function;
 
@@ -1178,6 +1188,24 @@ find_bad_point_in_disk:=function(P,data);
 end function;
 
 
+tadicprec:=function(data,e);
+
+  // Compute the necessary t-adic precision to compute tiny integrals
+
+  p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf;
+  W:=Winf*W0^(-1);
+
+  prec:=1;
+  while Floor(prec/e)+1-Floor(Log(p,prec+1)) lt N do
+    prec:=prec+1;
+  end while;
+  prec:=Maximum([prec,100]); // 100 arbitrary, avoid problems with small precisions 
+
+  return prec;
+
+end function;
+
+
 tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
 
   // Compute tiny integrals of basis elements from P1 to P2.
@@ -1216,12 +1244,8 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
   e:=Degree(Parent(x2));
 
   if prec eq 0 then // no t-adic precision specified
-    prec:=1;
-    while Floor(prec/e)+1-Floor(Log(p,prec+1)) lt N do
-      prec:=prec+1;
-    end while;
+    prec:=tadicprec(data,e);
   end if;
-  prec:=Maximum([prec,-2*ord_0_mat(W)*data`einf,100]); // temporary, look at this again
 
   Kt:=LaurentSeriesRing(K,prec);
   OK:=RingOfIntegers(K);
@@ -1319,13 +1343,9 @@ tiny_integrals_on_basis_to_z:=function(P,data:prec:=0);
 
   IPP1,NIPP1:=tiny_integrals_on_basis(P,P1,data:prec:=prec);
 
-  if prec eq 0 then // no precision specified
-    prec:=1;
-    while Floor(prec)+1-Floor(Log(p,prec+1)) lt N do
-      prec:=prec+1;
-    end while;
+  if prec eq 0 then // no t-adic precision specified
+    prec:=tadicprec(data,1);
   end if;
-  prec:=Maximum([prec,-2*ord_0_mat(W)*data`einf,50]); // temporary, TODO look at this again
 
   Kt<t>:=LaurentSeriesRing(K,prec);
   OK:=RingOfIntegers(K);
@@ -1553,14 +1573,10 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   // Integrals of basis elements from P1 to P2. 
 
-  F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf;
-  d:=Degree(Q); K:=Parent(x1); W:=Winf*W0^(-1);
+  F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N;
+  d:=Degree(Q); K:=Parent(x1); 
 
-  prec:=1;
-  while Floor(prec/e)+1-Floor(Log(p,prec+1)) lt N do
-    prec:=prec+1;
-  end while;
-  prec:=Maximum([prec,-2*ord_0_mat(W)*data`einf,50]); // temporary, TODO look at this again
+  prec:=tadicprec(data,e);   
 
   if is_bad(P1,data) then
     xt,bt,index:=local_coord(P1,prec,data);

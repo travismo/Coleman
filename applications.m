@@ -638,6 +638,7 @@ effective_chabauty:=function(data,bound:e:=1);
 
   Qpoints:=Q_points(data,bound);
   v:=vanishing_differentials(Qpoints,data:e:=e);
+
   pointlist:=[];
   Qppoints:=Qp_points(data:points:=Qpoints);
   for i:=1 to #Qppoints do

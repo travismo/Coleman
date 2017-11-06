@@ -50,6 +50,9 @@ auxpolys:=function(Q);
 end function;
 
 genus:=function(Q,p)
+
+  // Computes the genus of the smooth projective curve defined by Q
+
   Fp:=FiniteField(p);
   A2:=AffineSpace(Fp,2);
   Fpxy:=CoordinateRing(A2);
@@ -61,6 +64,9 @@ genus:=function(Q,p)
         Qmodp:=Qmodp+(Fp!D[j])*Fpxy.1^(j-1)*Fpxy.2^(i-1);
     end for;
   end for;
+  if not IsIrreducible(Qmodp) then
+    error "bad prime";
+  end if;
   g:=Genus(Curve(Scheme(A2,Qmodp)));
   return g;  
 end function;

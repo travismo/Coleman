@@ -723,7 +723,7 @@ approx_root:=function(fy,y0,modpprec,expamodp)
   v1:=Valuation(Zpt!Qt!Evaluate(fy,root));
   v2:=Valuation(Zpt!Qt!Evaluate(Derivative(fy),root));
 
-  if v1 le v2 then
+  if v1 le 2*v2 then
     error "something is wrong, approximate root not good enough for Hensel lift";
   end if;
 

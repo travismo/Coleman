@@ -646,7 +646,7 @@ mod_p_prec:=function(fy);
       modpprec:=Maximum(modpprec,Valuation(zeros[i]-zeros[j]));
     end for;
   end for;
-
+ 
   return modpprec;
  
 end function;
@@ -714,10 +714,20 @@ approx_root:=function(fy,y0,modpprec,expamodp)
   end while;
 
   if #roots ne 1 then
-    error "something is wrong, number of roots is different from 1";
+    error "something is wrong, number of approximate roots is different from 1";
   end if;
 
-  return roots[1][1];
+  root:=roots[1][1];
+  root:=Zpt!Qt!root;
+
+  v1:=Valuation(Zpt!Qt!Evaluate(fy,root));
+  v2:=Valuation(Zpt!Qt!Evaluate(Derivative(fy),root));
+
+  if v1 le v2 then
+    error "something is wrong, approximate root not good enough for Hensel lift";
+  end if;
+
+  return root;
 
 end function;
 
@@ -982,7 +992,7 @@ local_coord:=function(P,prec,data);
         approxroot:=approx_root(fy,x0,modpprec,expamodp);
       end if;
 
-      xt:=hensel_lift(fy,Kt!x0); 
+      xt:=hensel_lift(fy,approxroot);  
 
       bt:=[];
       for i:=1 to d do 

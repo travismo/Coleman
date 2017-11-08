@@ -222,60 +222,73 @@ minpoly:=function(f1,f2)
   // f1,f2 are elements of a 1 dimensional function field over Q
 
   FF:=Parent(f1);
-  d1:=Degree(f1);
-  d2:=Degree(f2);
 
-  S:=[];
-  for i:=0 to d1 do
-    for j:=0 to d2 do
-      S:=Append(S,f1^j*f2^i);
-    end for;
-  end for;
+  d:=5;  
 
-  denom:=1;
-  for i:=1 to #S do
-    E:=Eltseq(S[i]);
-    for j:=1 to #E do
-      denom:=LCM(denom,Denominator(E[j]));
+  done:=false;
+  while not done do
+
+    S:=[];
+    for i:=0 to d do
+      for j:=0 to d do
+        S:=Append(S,f1^j*f2^i);
+      end for;
     end for;
-  end for;
+
+    denom:=1;
+    for i:=1 to #S do
+      E:=Eltseq(S[i]);
+      for j:=1 to #E do
+        denom:=LCM(denom,Denominator(E[j]));
+      end for;
+    end for;
   
-  maxdeg:=0;
-  for i:=1 to #S do
-    E:=Eltseq(S[i]);
-    for j:=1 to #E do
-      deg:=Degree(Numerator(denom*E[j]));
-      if  deg gt maxdeg then
-        maxdeg:=deg;
-      end if;
+    maxdeg:=0;
+    for i:=1 to #S do
+      E:=Eltseq(S[i]);
+      for j:=1 to #E do
+        deg:=Degree(Numerator(denom*E[j]));
+        if  deg gt maxdeg then
+          maxdeg:=deg;
+        end if;
+      end for;
     end for;
-  end for;
 
-  T:=[];
-  for i:=1 to #S do
-    E:=Eltseq(S[i]);
-    v:=[];
-    for j:=1 to #E do
-      for k:=0 to maxdeg do
-        v[(j-1)*(maxdeg+1)+k+1]:=Coefficient(Numerator(denom*E[j]),k);
-      end for;  
+    T:=[];
+    for i:=1 to #S do
+      E:=Eltseq(S[i]);
+      v:=[];
+      for j:=1 to #E do
+        for k:=0 to maxdeg do
+          v[(j-1)*(maxdeg+1)+k+1]:=Coefficient(Numerator(denom*E[j]),k);
+        end for;  
+      end for;
+      T:=Append(T,v);
     end for;
-    T:=Append(T,v);
-  end for;
+
+    b:=Basis(NullSpace(Matrix(T)));  
+
+    if #b gt 0 then
+      done:=true;
+      R:=b[1];
+    else
+      d:=d+3;
+    end if;
+  
+  end while;
 
   Qx:=PolynomialRing(RationalField());
   Qxy:=PolynomialRing(Qx);
 
-  R:=Basis(NullSpace(Matrix(T)))[1];
-  
   poly:=Qxy!0;
-  for i:=0 to d1 do
-    for j:=0 to d2 do
-      poly:=poly+R[i*(d2+1)+j+1]*Qx.1^j*Qxy.1^i;
+  for i:=0 to d do
+    for j:=0 to d do
+      poly:=poly+R[i*(d+1)+j+1]*Qx.1^j*Qxy.1^i;
     end for;
   end for;
 
   fac:=Factorisation(poly);
+
   for i:=1 to #fac do
     factor:=fac[i][1];
     test:=FF!0;
@@ -286,7 +299,7 @@ minpoly:=function(f1,f2)
       poly:=factor;
     end if;
   end for;
-  
+
   return poly;
  
 end function;

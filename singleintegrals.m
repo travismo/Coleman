@@ -368,13 +368,20 @@ frobenius_pt:=function(P,data);
       end for;
       fy:=Ky!D;
 
-      zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+      fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+      zeros:=[];
+      for j:=1 to #fac do
+        if Degree(fac[j][1]) eq 1 then
+          zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+        end if;
+      end for;
+      
       done:=false;
       j:=1;
       while not done and j le #zeros do
-        if Valuation(zeros[j][1]-b[i]^p) gt p then // was gt 0 before 
+        if Valuation(zeros[j]-b[i]^p) gt p then // was gt 0 before 
           done:=true;
-          b[i]:=zeros[j][1];
+          b[i]:=zeros[j];
         end if;
         j:=j+1;
       end while;
@@ -399,13 +406,20 @@ frobenius_pt:=function(P,data);
       end for;
       fy:=Ky!D;
 
-      zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+      fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+      zeros:=[];
+      for j:=1 to #fac do
+        if Degree(fac[j][1]) eq 1 then
+          zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+        end if;
+      end for;
+
       done:=false;
       j:=1;
       while not done and j le #zeros do
-        if Valuation(zeros[j][1]-b[i]^p) gt p then // was gt 0 before
+        if Valuation(zeros[j]-b[i]^p) gt p then
           done:=true;
-          b[i]:=zeros[j][1];
+          b[i]:=zeros[j];
         end if;
         j:=j+1;
       end while;

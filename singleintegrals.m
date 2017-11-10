@@ -57,6 +57,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
     error "Curve is not irreducible";
   end if;
 
+  d:=Degree(Q);
   g:=genus(Q,p);
   r,e,s:=auxpolys(Q);
 
@@ -66,6 +67,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   W0:=mat_W0(Q);
   Winf:=mat_Winf(Q);
+  W:=Winf*W0^(-1);
 
   G:=con_mat(Q,e,s);
   G0:=W0*Evaluate(G,Parent(W0[1,1]).1)*W0^(-1)+ddx_mat(W0)*W0^(-1);
@@ -74,6 +76,8 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
   Jinf,Tinf,Tinfinv:=jordan_inf(Ginf);
   J0,T0,T0inv:=jordan_0(r,G0);
   e0,einf:=ram(J0,Jinf);
+ 
+  delta:=Floor(log(p,-(ord_0_mat(W)+1)*einf))+Floor(log(p,(Floor((2*g-2)/d)+1)*einf));
 
   basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1);
 
@@ -87,10 +91,10 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,W0,Winf,r,e,s,G0,Ginf,e0,einf,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf>;
+  format:=recformat<Q,p,N,W0,Winf,r,e,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`e:=e; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
-  out`e0:=e0; out`einf:=einf; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
+  out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
 
   return out;
@@ -1467,13 +1471,24 @@ evalf0:=function(f0,P,data);
   x0:=P`x; b:=P`b; Q:=data`Q; r:=data`r; W0:=data`W0; Winf:=data`Winf; N:=data`N; Nmax:=data`Nmax; p:=data`p;
   d:=Degree(Q); lcr:=LeadingCoefficient(r); K:=Parent(x0);
 
-  Nf0P:=N*Degree(K);
-
   if P`inf then 
     Winv:=W0*Winf^(-1); 
     Qx:=BaseRing(Winv);
     b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qx.1),x0)); // values of the b_i^0 at P
+    
     z0:=Evaluate(r,1/x0)/lcr;
+    invz0:=1/z0;
+    invz0pow:=[K!1];
+    for i:=1 to p*(Nmax-1) do
+      invz0pow[i+1]:=invz0pow[i]*invz0;
+    end for;
+    
+    invx0:=1/x0;
+    invx0pow:=[K!1];
+    for i:=1 to Degree(r)-1 do
+      invx0pow[i+1]:=invx0pow[i]*invx0;
+    end for;
+
     f0P:=K!0;
     for i:=1 to d do
       f0i:=f0[i];
@@ -1482,13 +1497,26 @@ evalf0:=function(f0,P,data);
       for j:=1 to #C do
         D:=Coefficients(C[j]);
         for k:=1 to #D do
-          f0P:=f0P+(K!D[k])*pow(1/x0,k-1)*pow(z0,val+j-1)*b[i];
+          f0P:=f0P+(K!D[k])*invx0pow[k]*invz0pow[2-j-val]*b[i];
         end for;
       end for;
     end for;
     Nf0P:=N*Degree(K)+(ord_inf_mat(Winv)+1)*Valuation(x0);
+
   else
-    z0:=Evaluate(r,x0)/lcr;   
+    
+    z0:=Evaluate(r,x0)/lcr;  
+    invz0:=1/z0;
+    invz0pow:=[K!1];
+    for i:=1 to p*(Nmax-1) do
+      invz0pow[i+1]:=invz0pow[i]*invz0;
+    end for;
+
+    x0pow:=[K!1];
+    for i:=1 to Degree(r)-1 do
+      x0pow[i+1]:=x0pow[i]*x0;
+    end for;  
+ 
     f0P:=K!0;
     for i:=1 to d do
       f0i:=f0[i];
@@ -1497,7 +1525,7 @@ evalf0:=function(f0,P,data);
       for j:=1 to #C do
         D:=Coefficients(C[j]);
         for k:=1 to #D do
-          f0P:=f0P+(K!D[k])*pow(x0,k-1)*pow(z0,val+j-1)*b[i];
+          f0P:=f0P+(K!D[k])*x0pow[k]*invz0pow[2-j-val]*b[i];
         end for;
       end for;
     end for;
@@ -1610,7 +1638,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   // Integrals of basis elements from P1 to P2. 
 
-  F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N;
+  F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N; delta:=data`delta;
   d:=Degree(Q); K:=Parent(x1); 
 
   prec:=tadicprec(data,e);   
@@ -1674,16 +1702,22 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
     I[i]:=(K!f0iS1)-(K!f0iS2)+(K!finfiS1)-(K!finfiS2)+(K!fendiS1)-(K!fendiS2)-(K!tinyS1toFS1[i]+K!tinyFS2toS2[i]);
   end for; 
 
+  valIP1P2:=Minimum([Valuation(I[i])/Valuation(K!p):i in [1..#basis]]);
+
   mat:=(F-IdentityMatrix(RationalField(),#basis));
+  valdet:=Valuation(Determinant(mat),p);
   mat:=mat^-1;
+  Nmat:=N-valdet-delta;
   valmat:=Minimum([Valuation(e,p):e in Eltseq(mat)]);
-  NIP1P2:=NIP1P2+valmat;                            // account for loss of precision multiplying by mat, TODO take error in mat into account as well
+
+  NIP1P2:=Minimum([NIP1P2+valmat,Nmat+valIP1P2]);                            
   
   IS1S2:=Vector(I)*Transpose(ChangeRing(mat,K)); 
   IP1P2:=IS1S2+ChangeRing(tinyP1toS1,K)-ChangeRing(tinyP2toS2,K);
   IP1P2,Nround:=round_to_Qp(IP1P2);
 
   assert Nround ge NIP1P2;                          // check that rounding error is within error bound
+  
 
   NIP1P2:=Ceiling(NIP1P2);
 

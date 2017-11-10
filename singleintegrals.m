@@ -632,7 +632,7 @@ mod_p_prec:=function(fy);
   //
   // Temporarily uses intrinsic Factorisation instead of 
   // intrinsic Roots because of multiple problems with Roots.
-
+  
   Kty:=Parent(fy);
   Kt:=BaseRing(Kty);
   tprec:=Precision(Kt);
@@ -646,7 +646,7 @@ mod_p_prec:=function(fy);
   derfymodp:=Derivative(fymodp);
 
   zeros:=[];
-  fac:=Factorisation(fymodp);
+  fac:=Factorisation(fymodp); // can be slow...
   for i:=1 to #fac do
     if fac[i][2] gt 1 then
       error "t-adic precision not high enough";
@@ -1717,8 +1717,6 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   IP1P2,Nround:=round_to_Qp(IP1P2);
 
   assert Nround ge NIP1P2;                          // check that rounding error is within error bound
-  
-
   NIP1P2:=Ceiling(NIP1P2);
 
   return IP1P2,NIP1P2;

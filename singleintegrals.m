@@ -222,6 +222,8 @@ end function;
 
 minpoly:=function(f1,f2)
 
+  tijd:=Cputime(); //
+
   // computes the minimum polynomial of f2 over Q(f1), where
   // f1,f2 are elements of a 1 dimensional function field over Q
 
@@ -436,6 +438,9 @@ frobenius_pt:=function(P,data);
   
     P`x:=x0p;
     P`b:=b;
+    delete P`xt;
+    delete P`bt;
+    delete P`index;
 
   return P;
 end function;
@@ -1641,13 +1646,11 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N; delta:=data`delta;
   d:=Degree(Q); K:=Parent(x1); 
 
-  prec:=tadicprec(data,e);   
-
   if is_bad(P1,data) then
-    xt,bt,index:=local_coord(P1,prec,data);
-    P1`xt:=xt;       // to avoid recomputing
-    P1`bt:=bt;       // to avoid recomputing
-    P1`index:=index; // to avoid recomputing
+    xt,bt,index:=local_coord(P1,tadicprec(data,e),data);
+    P1`xt:=xt;       
+    P1`bt:=bt;       
+    P1`index:=index; 
     Qp:=Parent(P1`x);
     Qpa<a>:=PolynomialRing(Qp);
     K<a>:=TotallyRamifiedExtension(Qp,a^e-p);
@@ -1657,14 +1660,18 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
     S1`x:=Evaluate(xt,a);
     S1`b:=[Evaluate(bt[i],a):i in [1..d]];
   else
+    xt,bt,index:=local_coord(P1,tadicprec(data,1),data);
+    P1`xt:=xt;       
+    P1`bt:=bt;       
+    P1`index:=index; 
     S1:=P1;
   end if;
 
   if is_bad(P2,data) then
-    xt,bt,index:=local_coord(P2,prec,data);
-    P2`xt:=xt;       // to avoid recomputing
-    P2`bt:=bt;       // to avoid recomputing
-    P2`index:=index; // to avoid recomputing
+    xt,bt,index:=local_coord(P2,tadicprec(data,e),data);
+    P2`xt:=xt;       
+    P2`bt:=bt;       
+    P2`index:=index; 
     if not is_bad(P1,data) then
       Qp:=Parent(P2`x);
       Qpa<a>:=PolynomialRing(Qp);
@@ -1676,6 +1683,10 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
     S2`x:=Evaluate(xt,a);
     S2`b:=[Evaluate(bt[i],a):i in [1..d]];
   else
+    xt,bt,index:=local_coord(P2,tadicprec(data,1),data);
+    P2`xt:=xt;       
+    P2`bt:=bt;       
+    P2`index:=index; 
     S2:=P2;
   end if;
 
@@ -1686,7 +1697,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   FS2:=frobenius_pt(S2,data);
 
   tinyS1toFS1,NS1toFS1:=tiny_integrals_on_basis(S1,FS1,data:P:=P1); 
-  tinyFS2toS2,NFS2toS2:=tiny_integrals_on_basis(FS2,S2,data:P:=P2); 
+  tinyS2toFS2,NFS2toS2:=tiny_integrals_on_basis(S2,FS2,data:P:=P2); 
 
   NIP1P2:=Minimum([NP1toS1,NP2toS2,NS1toFS1,NFS2toS2]);
 
@@ -1699,7 +1710,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
     fendiS1,NfendiS1:=evalfend(fendlist[i],S1,data);
     fendiS2,NfendiS2:=evalfend(fendlist[i],S2,data);
     NIP1P2:=Minimum([NIP1P2,Nf0iS1,Nf0iS2,NfinfiS1,NfinfiS2,NfendiS1,NfendiS2]);
-    I[i]:=(K!f0iS1)-(K!f0iS2)+(K!finfiS1)-(K!finfiS2)+(K!fendiS1)-(K!fendiS2)-(K!tinyS1toFS1[i]+K!tinyFS2toS2[i]);
+    I[i]:=(K!f0iS1)-(K!f0iS2)+(K!finfiS1)-(K!finfiS2)+(K!fendiS1)-(K!fendiS2)-(K!tinyS1toFS1[i])+(K!tinyS2toFS2[i]);
   end for; 
 
   valIP1P2:=Minimum([Valuation(I[i])/Valuation(K!p):i in [1..#basis]]);

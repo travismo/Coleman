@@ -91,7 +91,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,W0,Winf,r,e,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf>;
+  format:=recformat<Q,p,N,W0,Winf,r,e,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys>;
   out:=rec<format|>;
   out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`e:=e; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
@@ -222,8 +222,6 @@ end function;
 
 minpoly:=function(f1,f2)
 
-  tijd:=Cputime(); //
-
   // computes the minimum polynomial of f2 over Q(f1), where
   // f1,f2 are elements of a 1 dimensional function field over Q
 
@@ -311,6 +309,88 @@ minpoly:=function(f1,f2)
 end function;
 
 
+update_minpolys:=function(data,inf,index);
+
+  // TODO comment
+
+  Q:=data`Q; W0:=data`W0; Winf:=data`Winf; 
+  d:=Degree(Q);
+
+  Qx:=PolynomialRing(RationalField()); Qxy:=PolynomialRing(Qx);
+
+  if not assigned data`minpolys then
+    data`minpolys:=[ZeroMatrix(Qxy,d+2,d+2),ZeroMatrix(Qxy,d+2,d+2)];
+  end if;
+  minpolys:=data`minpolys;
+
+  Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
+
+  f:=Qxy!0;
+  for i:=0 to d do
+    for j:=0 to Degree(Coefficient(Q,i)) do
+      f:=f+Coefficient(Coefficient(Q,i),j)*Qxy.1^i*Qx.1^j;
+    end for;
+  end for;  
+  FF:=FunctionField(f); // function field of curve
+
+  if inf then 
+    W:=Winf;
+  else
+    W:=W0;
+  end if;
+
+  bfun:=[];
+  for i:=1 to d do
+    bi:=FF!0;
+    for j:=1 to d do
+      bi:=bi+W[i,j]*FF.1^(j-1);
+    end for;
+    bfun[i]:=bi;
+  end for;
+
+  if inf then // b=b^{infty}
+    if index eq 0 then
+       for i:=1 to d do
+         if minpolys[2][1,i+1] eq 0 then
+           minpolys[2][1,i+1]:=minpoly(FF!(1/Qx.1),bfun[i]);
+         end if;
+       end for;
+    else
+      if minpolys[2][index+1,1] eq 0 then
+        minpolys[2][index+1,1]:=minpoly(bfun[index],FF!(1/Qx.1));
+      end if;
+      for i:=1 to d do
+        if minpolys[2][index+1,i+1] eq 0 then
+          minpolys[2][index+1,i+1]:=minpoly(bfun[index],bfun[i]);
+        end if;
+      end for;
+    end if;
+  else // b=b^0
+    if index eq 0 then
+      for i:=1 to d do
+        if minpolys[1][1,i+1] eq 0 then
+          minpolys[1][1,i+1]:=minpoly(FF!Qx.1,bfun[i]);
+        end if;
+      end for;
+    else
+      if minpolys[1][index+1,1] eq 0 then
+        minpolys[1][index+1,1]:=minpoly(bfun[index],FF!Qx.1);
+      end if;
+      for i:=1 to d do
+        if minpolys[1][index+1,i+1] eq 0 then
+          minpolys[1][index+1,i+1]:=minpoly(bfun[index],bfun[i]);
+        end if;
+      end for;
+    end if;
+  end if;
+
+  data`minpolys:=minpolys;
+
+  return data;
+
+end function;
+
+
 frobenius_pt:=function(P,data);
 
   // Computes the image of P under Frobenius
@@ -365,7 +445,12 @@ frobenius_pt:=function(P,data);
       for j:=1 to d do
         bi:=bi+Winf[i,j]*FF.1^(j-1);
       end for;
-      poly:=minpoly(FF!(1/Qx.1),bi);
+
+      if assigned data`minpolys and data`minpolys[2][1,i+1] ne 0 then
+        poly:=data`minpolys[2][1,i+1];
+      else
+        poly:=minpoly(FF!(1/Qx.1),bi);
+      end if;
 
       C:=Coefficients(poly);
       D:=[];
@@ -403,7 +488,12 @@ frobenius_pt:=function(P,data);
       for j:=1 to d do
         bi:=bi+W0[i,j]*FF.1^(j-1);
       end for;
-      poly:=minpoly(FF!Qx.1,bi);
+
+      if assigned data`minpolys and data`minpolys[1][1,i+1] ne 0 then
+        poly:=data`minpolys[1][1,i+1];
+      else
+        poly:=minpoly(FF!Qx.1,bi);
+      end if;
 
       C:=Coefficients(poly);
       D:=[];
@@ -454,6 +544,8 @@ local_data:=function(P,data)
 
   if not is_bad(P,data) then
     eP:=1;
+    index:=0;
+    return eP,index;
   else     
     Fp:=FiniteField(p); Fpx:=RationalFunctionField(Fp); Fpxy:=PolynomialRing(Fpx);
     f:=Fpxy!0;
@@ -517,10 +609,9 @@ local_data:=function(P,data)
         i:=i+1;
       end while;
     end if;
-  
-  end if;
 
-  return eP,index,place,bmodp;
+    return eP,index,place,bmodp;
+  end if;
 
 end function;
 
@@ -577,57 +668,6 @@ hensel_lift:=function(fy,root);
   return root;
 
 end function;
-
-
-/*
-mod_p_prec:=function(fy)
-
-  // Finds the t-adic precision necessary to separate the roots
-  // of the polynomial fy over Qp[[t]] modulo p and start Hensel lift.
-
-  // Breaks down in some cases because of problem with 
-  // Magma intrinsic Roots, temporarily replaced by something
-  // more naive.
-
-  Kty:=Parent(fy);
-  Kt:=BaseRing(Kty);
-  tprec:=Precision(Kt);
-  K:=BaseRing(Kt);
-  p:=Prime(K);
-  Fp:=FiniteField(p);
-  Fpt:=PowerSeriesRing(Fp,tprec);
-  Fpty:=PolynomialRing(Fpt);
-
-  fymodp:=Fpty!fy;
-  derfymodp:=Derivative(fymodp);
-
-  done:=false;
-  prec:=1;
-
-  while not done do
-    prec:=prec+1;
-    zeros:=Roots(fymodp,prec); // can run into trouble if prec is too high compared to tprec...
-    done:=true;
-    for i:=1 to #zeros do
-      root:=zeros[i][1];
-      if Evaluate(fymodp,root) eq 0 then
-        v1:=prec;
-      else
-        v1:=Valuation(Evaluate(fymodp,root));
-      end if;
-      v2:=Valuation(Evaluate(derfymodp,root));
-      if zeros[i][2] gt 1 or v1 le 2*v2 then
-        done:=false;
-      end if;
-    end for;
-  end while;
-
-  modpprec:=Maximum([Valuation(z[1]):z in zeros])+prec;
-
-  return modpprec;
-
-end function;
-*/
 
 
 mod_p_prec:=function(fy);
@@ -874,7 +914,11 @@ local_coord:=function(P,prec,data);
 
       for i:=1 to d do
 
-        poly:=minpoly(FF!(1/Qx.1),bfun[i]);
+        if assigned data`minpolys and data`minpolys[2][1,i+1] ne 0 then
+          poly:=data`minpolys[2][1,i+1]; 
+        else 
+          poly:=minpoly(FF!(1/Qx.1),bfun[i]);
+        end if;
 
         C:=Coefficients(poly);
         D:=[];
@@ -901,7 +945,11 @@ local_coord:=function(P,prec,data);
 
     else // P is an infinite point that is ramified
 
-      poly:=minpoly(bfun[index],FF!1/(Qx.1));
+      if assigned data`minpolys and data`minpolys[2][index+1,1] ne 0 then
+        poly:=data`minpolys[2][index+1,1];
+      else
+        poly:=minpoly(bfun[index],FF!1/(Qx.1));
+      end if;
 
       C:=Coefficients(poly);
       D:=[];
@@ -930,7 +978,11 @@ local_coord:=function(P,prec,data);
           bt[i]:=t+b[i];
         else
           
-          poly:=minpoly(bfun[index],bfun[i]);
+          if assigned data`minpolys and data`minpolys[2][index+1,i+1] ne 0 then
+            poly:=data`minpolys[2][index+1,i+1];
+          else
+            poly:=minpoly(bfun[index],bfun[i]);
+          end if;
 
           C:=Coefficients(poly);
           D:=[];
@@ -981,7 +1033,11 @@ local_coord:=function(P,prec,data);
       bt:=[];
       for i:=1 to d do
         
-        poly:=minpoly(FF!Qx.1,bfun[i]);
+        if assigned data`minpolys and data`minpolys[1][1,i+1] ne 0 then
+          poly:=data`minpolys[1][1,i+1];
+        else
+          poly:=minpoly(FF!Qx.1,bfun[i]);
+        end if;
 
         C:=Coefficients(poly);
         D:=[];
@@ -1008,7 +1064,11 @@ local_coord:=function(P,prec,data);
 
     else // P is a finite point that ramifies
 
-      poly:=minpoly(bfun[index],FF!Qx.1);
+      if assigned data`minpolys and data`minpolys[1][index+1,1] ne 0 then
+        poly:=data`minpolys[1][index+1,1];
+      else
+        poly:=minpoly(bfun[index],FF!Qx.1);
+      end if;
 
       C:=Coefficients(poly);
       D:=[];
@@ -1037,7 +1097,11 @@ local_coord:=function(P,prec,data);
           bt[i]:=t+b[i];
         else
           
-          poly:=minpoly(bfun[index],bfun[i]);
+          if assigned data`minpolys and data`minpolys[1][index+1,i+1] ne 0 then
+            poly:=data`minpolys[1][index+1,i+1];
+          else
+            poly:=minpoly(bfun[index],bfun[i]);
+          end if;
 
           C:=Coefficients(poly);
           D:=[];

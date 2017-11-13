@@ -637,7 +637,10 @@ effective_chabauty:=function(data,bound:e:=1);
   // mod p and finds all common zeros of the vanishing differentials.
 
   Qpoints:=Q_points(data,bound);
+    
   for i:=1 to #Qpoints do
+    _,index:=local_data(Qpoints[i],data);
+    data:=update_minpolys(data,Qpoints[i]`inf,index);
     if is_bad(Qpoints[i],data) then
       xt,bt,index:=local_coord(Qpoints[i],tadicprec(data,e),data);
     else
@@ -645,13 +648,15 @@ effective_chabauty:=function(data,bound:e:=1);
     end if;
     Qpoints[i]`xt:=xt;
     Qpoints[i]`bt:=bt;
-    Qpoints[i]`index:=index;
+    Qpoints[i]`index:=index; 
   end for;
 
   v:=vanishing_differentials(Qpoints,data:e:=e);
 
   Qppoints:=Qp_points(data:points:=Qpoints);
   for i:=1 to #Qppoints do
+    _,index:=local_data(Qppoints[i],data);
+    data:=update_minpolys(data,Qppoints[i]`inf,index);
     if is_bad(Qppoints[i],data) then
       xt,bt,index:=local_coord(Qppoints[i],tadicprec(data,e),data);
     else

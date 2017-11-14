@@ -1710,6 +1710,11 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N; delta:=data`delta;
   d:=Degree(Q); K:=Parent(x1); 
 
+  _,index:=local_data(P1,data);
+  data:=update_minpolys(data,P1`inf,index);
+  _,index:=local_data(P2,data);
+  data:=update_minpolys(data,P2`inf,index);
+
   if is_bad(P1,data) then
     xt,bt,index:=local_coord(P1,tadicprec(data,e),data);
     P1`xt:=xt;       

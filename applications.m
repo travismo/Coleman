@@ -49,7 +49,7 @@ Fp_points:=function(data);
           j:=j+1;
         end while;
       end if;
-      Fppts:=Append(Fppts,[*false,Evaluate(FFp!Fpx.1,places[i]),[Fp!Evaluate(b0modp[j],places[i]): j in [1..d]],index*]);    
+      Fppts:=Append(Fppts,[*Evaluate(FFp!Fpx.1,places[i]),[Fp!Evaluate(b0modp[j],places[i]): j in [1..d]],false,index*]);    
     else
       if Valuation(FFp!(1/Fpx.1)-Evaluate(FFp!(1/Fpx.1),places[i]),places[i]) eq 1 then
         index:=0;
@@ -64,7 +64,7 @@ Fp_points:=function(data);
           j:=j+1;
         end while;
       end if;
-      Fppts:=Append(Fppts,[*true,Evaluate(FFp!(1/Fpx.1),places[i]),[Fp!Evaluate(binfmodp[j],places[i]): j in [1..d]],index*]);
+      Fppts:=Append(Fppts,[*Evaluate(FFp!(1/Fpx.1),places[i]),[Fp!Evaluate(binfmodp[j],places[i]): j in [1..d]],true,index*]);
     end if;
   end for;
 
@@ -122,7 +122,7 @@ Qp_points:=function(data:points:=[]);
     j:=1;
     done:=false;
     while not done and j le #points do
-      if (Fppoint[1] eq points[j]`inf) and (Fp!(points[j]`x)-Fppoint[2] eq 0) and ([Fp!(points[j]`b)[k]:k in [1..d]] eq Fppoint[3]) then
+      if (Fppoint[3] eq points[j]`inf) and (Fp!(points[j]`x)-Fppoint[1] eq 0) and ([Fp!(points[j]`b)[k]:k in [1..d]] eq Fppoint[2]) then
         done:=true;
         P:=points[j];
       end if;
@@ -131,16 +131,21 @@ Qp_points:=function(data:points:=[]);
     
     if not done then
       
-      if Fppoint[1] then // infinite point
+      if Fppoint[3] then // infinite point
         
         inf:=true;
         
         if Fppoint[4] eq 0 then // x - point[1] local coordinate
-          x:=Qp!Fppoint[2];
+          x:=Qp!Fppoint[1];
           b:=[];
           for j:=1 to d do
             bj:=binffun[j];
-            poly:=minpoly(FF!(1/Qx.1),bj);
+
+            if not assigned data`minpolys or data`minpolys[2][j+1] eq 0 then
+              data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+            end if;
+            poly:=data`minpolys[2][j+1];
+
             C:=Coefficients(poly);
             D:=[];
             for k:=1 to #C do
@@ -148,6 +153,7 @@ Qp_points:=function(data:points:=[]);
             end for;
             fy:=Qpy!D;
             zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+
             done:=false;
             k:=1;
             while not done and k le #zeros do
@@ -160,8 +166,13 @@ Qp_points:=function(data:points:=[]);
           end for;
         else // x-point[1] not local coordinate
           index:=Fppoint[4];
-          bindex:=Qp!Fppoint[3][index];
-          poly:=minpoly(binffun[index],FF!(1/Qx.1));
+          bindex:=Qp!Fppoint[2][index];
+
+          if not assigned data`minpolys or data`minpolys[2][index+1,1] eq 0 then
+            data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+          end if;
+          poly:=data`minpolys[2][index+1,1];
+
           C:=Coefficients(poly);
           D:=[];
           for k:=1 to #C do
@@ -169,6 +180,7 @@ Qp_points:=function(data:points:=[]);
           end for;
           fy:=Qpy!D;
           zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+
           done:=false;
           k:=1;
           while not done and k le #zeros do
@@ -183,7 +195,12 @@ Qp_points:=function(data:points:=[]);
             if j eq index then
               b[j]:=bindex;
             else
-              poly:=minpoly(binffun[index],binffun[j]);
+
+              if not assigned data`minpolys or data`minpolys[2][index+1,j+1] eq 0 then
+                data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+              end if;
+              poly:=data`minpolys[2][index+1,j+1];
+
               C:=Coefficients(poly);
               D:=[];
               for k:=1 to #C do
@@ -191,10 +208,11 @@ Qp_points:=function(data:points:=[]);
               end for;
               fy:=Qpy!D;
               zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k][1]-Fppoint[3][j] eq 0) then 
+                if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
                   done:=true;
                   b[j]:=zeros[k][1];
                 end if;
@@ -206,11 +224,16 @@ Qp_points:=function(data:points:=[]);
       else // finite point
         inf:=false;
         if Fppoint[4] eq 0 then // x - point[1] local coordinate
-          x:=Qp!Fppoint[2];
+          x:=Qp!Fppoint[1];
           b:=[];
           for j:=1 to d do
             bj:=b0fun[j];
-            poly:=minpoly(FF!Qx.1,bj);
+
+            if not assigned data`minpolys or data`minpolys[1][1,j+1] eq 0 then
+              data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+            end if;
+            poly:=data`minpolys[1][1,j+1];
+
             C:=Coefficients(poly);
             D:=[];
             for k:=1 to #C do
@@ -218,10 +241,11 @@ Qp_points:=function(data:points:=[]);
             end for;
             fy:=Qpy!D;
             zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+
             done:=false;
             k:=1;
             while not done and k le #zeros do
-              if (Fp!zeros[k][1]-Fppoint[3][j] eq 0) then 
+              if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
                 done:=true;
                 b[j]:=zeros[k][1];
               end if;
@@ -230,8 +254,13 @@ Qp_points:=function(data:points:=[]);
           end for;
         else // x-point[1] not local coordinate
           index:=Fppoint[4];
-          bindex:=Qp!Fppoint[3][index];
-          poly:=minpoly(b0fun[index],FF!Qx.1);
+          bindex:=Qp!Fppoint[2][index];
+
+          if not assigned data`minpolys or data`minpolys[1][index+1,1] eq 0 then
+            data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+          end if;
+          poly:=data`minpolys[1][index+1,1];
+
           C:=Coefficients(poly);
           D:=[];
           for k:=1 to #C do
@@ -239,6 +268,7 @@ Qp_points:=function(data:points:=[]);
           end for;
           fy:=Qpy!D;
           zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+
           done:=false;
           k:=1;
           while not done and k le #zeros do
@@ -253,7 +283,12 @@ Qp_points:=function(data:points:=[]);
             if j eq index then
               b[j]:=bindex;
             else
-              poly:=minpoly(b0fun[index],b0fun[j]);
+
+              if not assigned data`minpolys or data`minpolys[1][index+1,j+1] eq 0 then
+                data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+              end if;
+              poly:=data`minpolys[1][index+1,j+1];
+
               C:=Coefficients(poly);
               D:=[];
               for k:=1 to #C do
@@ -261,6 +296,7 @@ Qp_points:=function(data:points:=[]);
               end for;
               fy:=Qpy!D;
               zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+
               done:=false;
               k:=1;
               while not done and k le #zeros do
@@ -284,7 +320,7 @@ Qp_points:=function(data:points:=[]);
   
   end for;
 
-  return Qppts;
+  return Qppts,data;
 
 end function;
 
@@ -559,12 +595,12 @@ vanishing_differentials:=function(points,data:e:=1);
 
   v:=basis_kernel(M);
 
-  return v,Nint;
+  return v,IP1Pi,NIP1Pi;
 
 end function;
 
 
-zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1);
+zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
 
   // Find all common zeros of the integrals of the v[i] (vectors 
   // of length g) from P1 to points in the residue disk of P2.
@@ -573,7 +609,12 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1);
 
   g:=genus(Q,p);
 
-  IP1P2,NIP1P2:=coleman_integrals_on_basis(P1,P2,data:e:=e);
+  if integral eq [**] then
+    IP1P2,NIP1P2:=coleman_integrals_on_basis(P1,P2,data:e:=e);
+  else
+    IP1P2:=integral[1];
+    NIP1P2:=integral[2];
+  end if;
   tinyP2toz,xt,bt,NP2toz:=tiny_integrals_on_basis_to_z(P2,data:prec:=prec);
 
   Nv:=Precision(Parent(v[1][1]));
@@ -651,12 +692,10 @@ effective_chabauty:=function(data,bound:e:=1);
     Qpoints[i]`index:=index; 
   end for;
 
-  v:=vanishing_differentials(Qpoints,data:e:=e);
+  v,IP1Pi,NIP1Pi:=vanishing_differentials(Qpoints,data:e:=e);
 
-  Qppoints:=Qp_points(data:points:=Qpoints);
+  Qppoints,data:=Qp_points(data:points:=Qpoints);
   for i:=1 to #Qppoints do
-    _,index:=local_data(Qppoints[i],data);
-    data:=update_minpolys(data,Qppoints[i]`inf,index);
     if is_bad(Qppoints[i],data) then
       xt,bt,index:=local_coord(Qppoints[i],tadicprec(data,e),data);
     else
@@ -669,7 +708,17 @@ effective_chabauty:=function(data,bound:e:=1);
 
   pointlist:=[];
   for i:=1 to #Qppoints do
-    pts:=zeros_on_disk(Qpoints[1],Qppoints[i],v,data:e:=e);
+    k:=0;
+    for j:=1 to #Qpoints do
+      if (Qppoints[i]`x eq Qpoints[j]`x) and (Qppoints[i]`b eq Qpoints[j]`b) and (Qppoints[i]`inf eq Qpoints[j]`inf) then
+        k:=j;
+      end if;
+    end for;
+    if k lt 2 then
+      pts:=zeros_on_disk(Qpoints[1],Qppoints[i],v,data:e:=e);
+    else
+      pts:=zeros_on_disk(Qpoints[1],Qppoints[i],v,data:e:=e,integral:=[*IP1Pi[k-1],NIP1Pi[k-1]*]);
+    end if;
     for j:=1 to #pts do
       pointlist:=Append(pointlist,pts[j]);
     end for;
@@ -693,6 +742,8 @@ torsion_packet:=function(P,data,bound:e:=1);
   g:=genus(Q,p);
   v:=RowSequence(IdentityMatrix(Qp,g));
 
+  _,index:=local_data(P,data);
+  data:=update_minpolys(data,P`inf,index);
   if is_bad(P,data) then
     xt,bt,index:=local_coord(P,tadicprec(data,e),data);
   else
@@ -703,7 +754,7 @@ torsion_packet:=function(P,data,bound:e:=1);
   P`index:=index;
 
   Qpoints:=Q_points(data,bound);
-  Qppoints:=Qp_points(data:points:=Qpoints);
+  Qppoints,data:=Qp_points(data:points:=Qpoints);
   for i:=1 to #Qppoints do
     if is_bad(Qppoints[i],data) then
       xt,bt,index:=local_coord(Qppoints[i],tadicprec(data,e),data);

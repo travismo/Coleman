@@ -845,6 +845,10 @@ local_coord:=function(P,prec,data);
     return xt,bt,index;
   end if;
 
+  if is_bad(P,data) and not is_very_bad(P,data) then
+    error "Cannot compute local parameter at a bad point which is not very bad";
+  end if;
+
   x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; d:=Degree(Q); b:=P`b;
   K:=Parent(x0); Kt<t>:=PowerSeriesRing(K,prec); Kty:=PolynomialRing(Kt);
   Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
@@ -1710,6 +1714,40 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   F:=data`F; Q:=data`Q; basis:=data`basis; x1:=P1`x; f0list:=data`f0list; finflist:=data`finflist; fendlist:=data`fendlist; p:=data`p; N:=data`N; delta:=data`delta;
   d:=Degree(Q); K:=Parent(x1); 
 
+  // First make sure that if P1 or P2 is bad, then it is very bad
+
+  if is_bad(P1,data) and not is_very_bad(P1,data) then
+    S1:=find_bad_point_in_disk(P1,data);
+    _,index:=local_data(S1,data);
+    data:=update_minpolys(data,S1`inf,index);
+    xt,bt,index:=local_coord(S1,tadicprec(data,e),data);
+    S1`xt:=xt;
+    S1`bt:=bt;
+    S1`index:=index;
+    IS1P1,NIS1P1:=tiny_integrals_on_basis(S1,P1,data:prec:=tadicprec(data,e));
+    IS1P2,NIS1P2:=$$(S1,P2,data:e:=e);
+    IP1P2:=IS1P2-IS1P1;
+    NIP1P2:=Ceiling(Minimum([NIS1P1,NIS1P2]));
+    return IP1P2,NIP1P2;
+  end if;
+
+  if is_bad(P2,data) and not is_very_bad(P2,data) then
+    S2:=find_bad_point_in_disk(P2,data);
+    _,index:=local_data(S2,data);
+    data:=update_minpolys(data,S2`inf,index);
+    xt,bt,index:=local_coord(S2,tadicprec(data,e),data);
+    S2`xt:=xt;
+    S2`bt:=bt;
+    S2`index:=index;
+    IP1S2,NIP1S2:=$$(P1,S2,data:e:=e);
+    IP2S2,NIP2S2:=tiny_integrals_on_basis(P2,S2,data:prec:=tadicprec(data,e));
+    IP1P2:=IP1S2-IP2S2;
+    NIP1P2:=Ceiling(Minimum([NIP1S2,NIP2S2]));
+    return IP1P2,NIP1P2;
+  end if;
+
+  // If P1,P2 is bad (hence very bad), use a near boundary point.
+
   _,index:=local_data(P1,data);
   data:=update_minpolys(data,P1`inf,index);
   _,index:=local_data(P2,data);
@@ -1759,6 +1797,8 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
     S2:=P2;
   end if;
 
+  // Split up the integral and compute the tiny ones.
+
   tinyP1toS1,NP1toS1:=tiny_integrals_on_basis(P1,S1,data);
   tinyP2toS2,NP2toS2:=tiny_integrals_on_basis(P2,S2,data);
 
@@ -1769,6 +1809,8 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   tinyS2toFS2,NFS2toS2:=tiny_integrals_on_basis(S2,FS2,data:P:=P2); 
 
   NIP1P2:=Minimum([NP1toS1,NP2toS2,NS1toFS1,NFS2toS2]);
+
+  // Evaluate all functions.
 
   I:=[];
   for i:=1 to #basis do
@@ -1792,11 +1834,11 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   NIP1P2:=Minimum([NIP1P2+valmat,Nmat+valIP1P2]);                            
   
-  IS1S2:=Vector(I)*Transpose(ChangeRing(mat,K)); 
+  IS1S2:=Vector(I)*Transpose(ChangeRing(mat,K));    // Solve the linear system.
   IP1P2:=IS1S2+ChangeRing(tinyP1toS1,K)-ChangeRing(tinyP2toS2,K);
   IP1P2,Nround:=round_to_Qp(IP1P2);
 
-  assert Nround ge NIP1P2;                          // check that rounding error is within error bound
+  assert Nround ge NIP1P2;                          // Check that rounding error is within error bound.
   NIP1P2:=Ceiling(NIP1P2);
 
   return IP1P2,NIP1P2;

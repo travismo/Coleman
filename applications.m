@@ -141,10 +141,10 @@ Qp_points:=function(data:points:=[]);
           for j:=1 to d do
             bj:=binffun[j];
 
-            if not assigned data`minpolys or data`minpolys[2][j+1] eq 0 then
+            if not assigned data`minpolys or data`minpolys[2][1,j+1] eq 0 then
               data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
             end if;
-            poly:=data`minpolys[2][j+1];
+            poly:=data`minpolys[2][1,j+1];
 
             C:=Coefficients(poly);
             D:=[];
@@ -157,7 +157,7 @@ Qp_points:=function(data:points:=[]);
             done:=false;
             k:=1;
             while not done and k le #zeros do
-              if (Fp!zeros[k][1]-Fppoint[3][j] eq 0) then 
+              if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
                 done:=true;
                 b[j]:=zeros[k][1];
               end if;
@@ -179,6 +179,7 @@ Qp_points:=function(data:points:=[]);
             D[k]:=Evaluate(C[k],bindex); 
           end for;
           fy:=Qpy!D;
+
           zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
           done:=false;
@@ -311,9 +312,13 @@ Qp_points:=function(data:points:=[]);
         end if;
         
       end if;
-    
-    P:=set_bad_point(x,b,inf,data);
 
+      P:=set_bad_point(x,b,inf,data);
+
+    end if;
+
+    if is_bad(P,data) and not is_very_bad(P,data) then
+      P:=find_bad_point_in_disk(P,data);
     end if;
     
     Qppts:=Append(Qppts,P);
@@ -669,7 +674,7 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
 end function;
 
 
-effective_chabauty:=function(data,bound:e:=1);
+effective_chabauty:=function(data:Qpoints:=[],bound:=0,e:=1);
 
   // Carries out effective Chabauty for the curve given by data.
   // First does a point search up to height bound. Then uses the
@@ -677,19 +682,29 @@ effective_chabauty:=function(data,bound:e:=1);
   // goes over all residue disks mapping to points on the reduction
   // mod p and finds all common zeros of the vanishing differentials.
 
-  Qpoints:=Q_points(data,bound);
-    
+  if Qpoints eq [] then
+    if bound eq 0 then
+      error "have to specify either Qpoints or a bound for search";
+    end if;
+    Qpoints:=Q_points(data,bound);
+  end if; 
+   
   for i:=1 to #Qpoints do
     _,index:=local_data(Qpoints[i],data);
     data:=update_minpolys(data,Qpoints[i]`inf,index);
     if is_bad(Qpoints[i],data) then
-      xt,bt,index:=local_coord(Qpoints[i],tadicprec(data,e),data);
+      if is_very_bad(Qpoints[i],data) then
+        xt,bt,index:=local_coord(Qpoints[i],tadicprec(data,e),data);
+        Qpoints[i]`xt:=xt;
+        Qpoints[i]`bt:=bt;
+        Qpoints[i]`index:=index; 
+      end if;
     else
       xt,bt,index:=local_coord(Qpoints[i],tadicprec(data,1),data);
+      Qpoints[i]`xt:=xt;
+      Qpoints[i]`bt:=bt;
+      Qpoints[i]`index:=index; 
     end if;
-    Qpoints[i]`xt:=xt;
-    Qpoints[i]`bt:=bt;
-    Qpoints[i]`index:=index; 
   end for;
 
   v,IP1Pi,NIP1Pi:=vanishing_differentials(Qpoints,data:e:=e);
@@ -729,7 +744,7 @@ effective_chabauty:=function(data,bound:e:=1);
 end function;
 
 
-torsion_packet:=function(P,data,bound:e:=1);
+torsion_packet:=function(P,data:bound:=0,e:=1);
 
   // Compute the rational points in the torsion packet of P
   // by computing the common zeros of the integrals of all
@@ -745,25 +760,40 @@ torsion_packet:=function(P,data,bound:e:=1);
   _,index:=local_data(P,data);
   data:=update_minpolys(data,P`inf,index);
   if is_bad(P,data) then
-    xt,bt,index:=local_coord(P,tadicprec(data,e),data);
+    if is_very_bad(P,data) then
+      xt,bt,index:=local_coord(P,tadicprec(data,e),data);
+      P`xt:=xt;
+      P`bt:=bt;
+      P`index:=index;
+    end if;
   else
     xt,bt,index:=local_coord(P,tadicprec(data,1),data);
+    P`xt:=xt;
+    P`bt:=bt;
+    P`index:=index;
   end if;
-  P`xt:=xt;
-  P`bt:=bt;
-  P`index:=index;
 
-  Qpoints:=Q_points(data,bound);
-  Qppoints,data:=Qp_points(data:points:=Qpoints);
+  if bound ne 0 then
+    Qpoints:=Q_points(data,bound); 
+    Qppoints,data:=Qp_points(data:points:=Qpoints);
+  else
+    Qppoints,data:=Qp_points(data);
+  end if;
+
   for i:=1 to #Qppoints do
     if is_bad(Qppoints[i],data) then
-      xt,bt,index:=local_coord(Qppoints[i],tadicprec(data,e),data);
+      if is_very_bad(Qppoints[i],data) then
+        xt,bt,index:=local_coord(Qppoints[i],tadicprec(data,e),data);
+        Qppoints[i]`xt:=xt;
+        Qppoints[i]`bt:=bt;
+        Qppoints[i]`index:=index;
+      end if;
     else
       xt,bt,index:=local_coord(Qppoints[i],tadicprec(data,1),data);
+      Qppoints[i]`xt:=xt;
+      Qppoints[i]`bt:=bt;
+      Qppoints[i]`index:=index;
     end if;
-    Qppoints[i]`xt:=xt;
-    Qppoints[i]`bt:=bt;
-    Qppoints[i]`index:=index;
   end for;
   
   pointlist:=[];

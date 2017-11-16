@@ -682,7 +682,7 @@ effective_chabauty:=function(data:Qpoints:=[],bound:=0,e:=1);
   // goes over all residue disks mapping to points on the reduction
   // mod p and finds all common zeros of the vanishing differentials.
 
-  if Qpoints eq [] then
+  if #Qpoints eq 0 then
     if bound eq 0 then
       error "have to specify either Qpoints or a bound for search";
     end if;

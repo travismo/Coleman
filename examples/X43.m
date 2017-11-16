@@ -13,7 +13,7 @@ Q:=3*x^3*y + y^3 - 6*y^2 + 3*y + 1;
 p:=7;
 N:=10;
 data:=coleman_data(Q,p,N);
-L,v:=effective_chabauty(data,1000:e:=50);
+L,v:=effective_chabauty(data:bound:=1000,e:=50);
 
 L;							// Q-points found by effective Chabauty
 //[

@@ -15,7 +15,7 @@ p:=5;
 N:=15;
 data:=coleman_data(Q,p,N);
 
-L,v:=effective_chabauty(data,1000:e:=30);
+L,v:=effective_chabauty(data:bound:=1000,e:=30);
 
 L;
 /*

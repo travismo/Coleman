@@ -75,7 +75,7 @@ O(7^11)
 
 // Carry out effective Chabauty automatically (without using the above computations)
 
-L,v:=effective_chabauty(data,1000:e:=50);
+L,v:=effective_chabauty(data:bound:=1000,e:=50);
 L;
 /*
 [

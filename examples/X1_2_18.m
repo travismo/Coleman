@@ -7,7 +7,7 @@ Q:=9*x^6*y^3 + 12*x^4*y^4 - 9*x^4*y^3 - 81*x^4*y^2 - 162*x^4*y - 243*x^4 + 6*x^2
 p:=11;
 N:=20;
 data:=coleman_data(Q,p,N);
-L,v:=effective_chabauty(data,1000:e:=75);
+L,v:=effective_chabauty(data:bound:=1000,e:=75);
 
 L;
 /*

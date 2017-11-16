@@ -80,7 +80,7 @@ O(3^13)
 
 // Carry out effective Chabauty automatically (without using the above computations)
 
-L,v:=effective_chabauty(data,1000:e:=20);
+L,v:=effective_chabauty(data:bound:=1000,e:=20);
 
 L;
 /*

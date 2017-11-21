@@ -85,7 +85,7 @@ Qp_points:=function(data:points:=[]);
   Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
 
   Nwork:=Ceiling(N*1.5); // Look at this again, how much precision loss in Roots()?
-  Qp:=pAdicField(p,Nwork); Qpy:=PolynomialRing(Qp);
+  Qp:=pAdicField(p,Nwork); Qpy:=PolynomialRing(Qp); Zp:=pAdicRing(p,N); Zpy:=PolynomialRing(Zp);
 
   Fppts:=Fp_points(data);
   Qppts:=[];
@@ -117,7 +117,7 @@ Qp_points:=function(data:points:=[]);
   end for;
 
   for i:=1 to #Fppts do
-    
+
     Fppoint:=Fppts[i];
     j:=1;
     done:=false;
@@ -151,7 +151,7 @@ Qp_points:=function(data:points:=[]);
             for k:=1 to #C do
               D[k]:=Evaluate(C[k],x); 
             end for;
-            fy:=Qpy!D;
+            fy:=Qpy!Zpy!D;
             zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
             done:=false;
@@ -178,14 +178,13 @@ Qp_points:=function(data:points:=[]);
           for k:=1 to #C do
             D[k]:=Evaluate(C[k],bindex); 
           end for;
-          fy:=Qpy!D;
-
+          fy:=Qpy!Zpy!D;
           zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
           done:=false;
           k:=1;
           while not done and k le #zeros do
-            if (Fp!zeros[k][1]-Fppoint[2] eq 0) then 
+            if (Fp!zeros[k][1]-Fppoint[1] eq 0) then 
               done:=true;
               x:=zeros[k][1];
             end if;
@@ -207,7 +206,7 @@ Qp_points:=function(data:points:=[]);
               for k:=1 to #C do
                 D[k]:=Evaluate(C[k],bindex); 
               end for;
-              fy:=Qpy!D;
+              fy:=Qpy!Zpy!D;
               zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
               done:=false;
@@ -240,7 +239,7 @@ Qp_points:=function(data:points:=[]);
             for k:=1 to #C do
               D[k]:=Evaluate(C[k],x); 
             end for;
-            fy:=Qpy!D;
+            fy:=Qpy!Zpy!D;
             zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
             done:=false;
@@ -267,7 +266,7 @@ Qp_points:=function(data:points:=[]);
           for k:=1 to #C do
             D[k]:=Evaluate(C[k],bindex); 
           end for;
-          fy:=Qpy!D;
+          fy:=Qpy!Zpy!D;
           zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
           done:=false;
@@ -295,7 +294,7 @@ Qp_points:=function(data:points:=[]);
               for k:=1 to #C do
                 D[k]:=Evaluate(C[k],bindex); 
               end for;
-              fy:=Qpy!D;
+              fy:=Qpy!Zpy!D;
               zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
 
               done:=false;

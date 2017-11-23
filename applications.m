@@ -272,7 +272,7 @@ Qp_points:=function(data:points:=[]);
           done:=false;
           k:=1;
           while not done and k le #zeros do
-            if (Fp!zeros[k][1]-Fppoint[2] eq 0) then 
+            if (Fp!zeros[k][1]-Fppoint[1] eq 0) then 
               done:=true;
               x:=zeros[k][1];
             end if;
@@ -300,7 +300,7 @@ Qp_points:=function(data:points:=[]);
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k][1]-Fppoint[3][j] eq 0) then 
+                if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
                   done:=true;
                   b[j]:=zeros[k][1];
                 end if;
@@ -493,7 +493,7 @@ my_roots_Zpt:=function(f)
     Nz:=Zproots[i][2];
     v1:=Valuation(Evaluate(f,z));
     v2:=Valuation(Evaluate(Derivative(f),z)); 
-    if (not v1 gt 2*v2) and (v1 lt Nf-val) then
+    if not (v1 gt 2*v2 and Nz ge v2+1) and (v1 lt Nf-val) then
       Zproots:=Remove(Zproots,i);
       znew:=z+p^Nz*Zps.1;
       g:=Fps![e/p^(Nz): e in Coefficients(Evaluate(f,znew))];

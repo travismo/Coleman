@@ -59,17 +59,19 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   d:=Degree(Q);
   g:=genus(Q,p);
-  r,e,s:=auxpolys(Q);
+  r,Delta,s:=auxpolys(Q);
 
-  if not smooth(r,p) then
+  W0:=mat_W0(Q);
+  W0inv:=W0^(-1);
+  Winf:=mat_Winf(Q);
+  Winfinv:=Winf^(-1);
+  W:=Winf*W0^(-1);
+
+  if (LeadingCoefficient(Delta) mod p eq 0) or (Degree(r) lt 1) or (not smooth(r,p)) or (not (is_integral(W0,p) and is_integral(W0inv,p) and is_integral(Winf,p) and is_integral(Winfinv,p))) then
     error "bad prime";
   end if;
 
-  W0:=mat_W0(Q);
-  Winf:=mat_Winf(Q);
-  W:=Winf*W0^(-1);
-
-  G:=con_mat(Q,e,s);
+  G:=con_mat(Q,Delta,s);
   G0:=W0*Evaluate(G,Parent(W0[1,1]).1)*W0^(-1)+ddx_mat(W0)*W0^(-1);
   Ginf:=Winf*Evaluate(G,Parent(Winf[1,1]).1)*Winf^(-1)+ddx_mat(Winf)*Winf^(-1);
 
@@ -83,7 +85,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf);
 
-  frobmatb0r:=froblift(Q,p,Nmax-1,r,e,s,W0);
+  frobmatb0r:=froblift(Q,p,Nmax-1,r,Delta,s,W0);
 
   red_list_fin,red_list_inf:=red_lists(Q,p,Nmax,r,W0,Winf,G0,Ginf,e0,einf,J0,Jinf,T0,Tinf,T0inv,Tinfinv);
 
@@ -91,9 +93,9 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,W0,Winf,r,e,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys>;
+  format:=recformat<Q,p,N,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys>;
   out:=rec<format|>;
-  out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`e:=e; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
+  out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
 

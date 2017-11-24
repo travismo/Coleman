@@ -16,6 +16,8 @@ print p,L,v;
 
 // Take one point P in each residue disk:
 
+Mlist:=[];
+
 for P in [Qpoints[3],Qpoints[4],Qpoints[6]] do
 
 xt,bt:=local_coord(P,25,data);
@@ -47,16 +49,12 @@ for i:=1 to 8 do
   end for;
 end for;
 
-Dimension(Kernel(M));
+Mlist:=Append(Mlist,M);
 
 end for;
 
-/*
-6
-6
-6
-*/
+Dimension(Kernel(Mlist[1]) meet Kernel(Mlist[2]) meet Kernel(Mlist[3]));
+// 6
 
-// As claimed in the paper, the dimensions are all 6.
-
+// The dimension is 6 as observed in the paper.
 

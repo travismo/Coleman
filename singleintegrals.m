@@ -1546,6 +1546,8 @@ evalf0:=function(f0,P,data);
   x0:=P`x; b:=P`b; Q:=data`Q; r:=data`r; W0:=data`W0; Winf:=data`Winf; N:=data`N; Nmax:=data`Nmax; p:=data`p;
   d:=Degree(Q); lcr:=LeadingCoefficient(r); K:=Parent(x0);
 
+  valf0:=0;
+
   if P`inf then 
     Winv:=W0*Winf^(-1); 
     Qx:=BaseRing(Winv);
@@ -1573,10 +1575,11 @@ evalf0:=function(f0,P,data);
         D:=Coefficients(C[j]);
         for k:=1 to #D do
           f0P:=f0P+(K!D[k])*invx0pow[k]*invz0pow[2-j-val]*b[i];
+          valf0:=Minimum(valf0,Valuation(K!D[k]));
         end for;
       end for;
     end for;
-    Nf0P:=N*Degree(K)+(ord_inf_mat(Winv)+1)*Valuation(x0);
+    Nf0P:=N*Degree(K)+(ord_inf_mat(Winv)+1)*Valuation(x0)+valf0;
 
   else
     
@@ -1601,10 +1604,11 @@ evalf0:=function(f0,P,data);
         D:=Coefficients(C[j]);
         for k:=1 to #D do
           f0P:=f0P+(K!D[k])*x0pow[k]*invz0pow[2-j-val]*b[i];
+          valf0:=Minimum(valf0,Valuation(K!D[k]));
         end for;
       end for;
     end for;
-    Nf0P:=N*Degree(K)-p*(Nmax-1)*Valuation(z0); // TODO this is error of terms we did consider, take error of terms we ignored into account as well
+    Nf0P:=N*Degree(K)-p*(Nmax-1)*Valuation(z0)+valf0; // TODO this is error of terms we did consider, take error of terms we ignored into account as well
   end if;
 
   return f0P,Nf0P/Degree(K);
@@ -1621,6 +1625,8 @@ evalfinf:=function(finf,P,data);
 
   W:=Winf*W0^(-1); 
 
+  valfinf:=0;
+
   if P`inf then
     finfP:=K!0;
     for i:=1 to d do
@@ -1629,9 +1635,10 @@ evalfinf:=function(finf,P,data);
       val:=Valuation(finfi);
       for j:=1 to #C do
         finfP:=finfP+(K!C[j])*pow(1/x0,val+j-1)*b[i];
+        valfinf:=Minimum(valfinf,Valuation(K!C[j]));
       end for;
     end for;
-    NfinfP:=N*Degree(K)+p*(ord_0_mat(W)+1)*Valuation(x0);
+    NfinfP:=N*Degree(K)+p*(ord_0_mat(W)+1)*Valuation(x0)+valfinf;
   else 
     finf:=finf*ChangeRing(W,BaseRing(finf));
     finfP:=K!0;
@@ -1641,9 +1648,10 @@ evalfinf:=function(finf,P,data);
       val:=Valuation(finfi);
       for j:=1 to #C do
         finfP:=finfP+(K!C[j])*pow(x0,val+j-1)*b[i];
+        valfinf:=Minimum(valfinf,Valuation(K!C[j]));
       end for;
     end for;
-    NfinfP:=N*Degree(K);
+    NfinfP:=N*Degree(K)+valfinf;
   end if;
 
   return finfP, NfinfP/Degree(K);
@@ -1659,6 +1667,7 @@ evalfend:=function(fend,P,data);
   d:=Degree(Q);
   K:=Parent(x0);
 
+  valfend:=0;
 
   if P`inf then
     Winv:=W0*Winf^(-1);
@@ -1670,9 +1679,10 @@ evalfend:=function(fend,P,data);
       C:=Coefficients(fendi);
       for j:=1 to #C do
         fendP:=fendP+(K!C[j])*pow(1/x0,j-1)*b[i];
+        valfend:=Minimum(valfend,Valuation(K!C[j]));
       end for;
     end for;
-    NfendP:=N*Degree(K)+(ord_0_mat(Winf)+1)*Valuation(x0);
+    NfendP:=N*Degree(K)+(ord_0_mat(Winf)+1)*Valuation(x0)+valfend;
   else
     fendP:=K!0;
     for i:=1 to d do
@@ -1680,9 +1690,10 @@ evalfend:=function(fend,P,data);
       C:=Coefficients(fendi);
       for j:=1 to #C do
         fendP:=fendP+(K!C[j])*pow(x0,j-1)*b[i];
+        valfend:=Minimum(valfend,Valuation(K!C[j]));
       end for;
     end for;
-    NfendP:=N*Degree(K);
+    NfendP:=N*Degree(K)+valfend;
   end if;
 
   return fendP, NfendP/Degree(K);

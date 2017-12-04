@@ -59,7 +59,3 @@ v; 							// vanishing differentials
     [ O(5^8), O(5^8), 1 + O(5^8) ]
 ]
 */
-
-
-
-

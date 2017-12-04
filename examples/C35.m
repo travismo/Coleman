@@ -22,8 +22,7 @@ IP1P5,N5:=coleman_integrals_on_basis(P1,P5,data:e:=50);
 IP1P2;
 N2;
 /*
-(586076511630347*7 + O(7^19) -691266186835633*7 + O(7^19) 166240700189764*7 + O(7^19) -1396083809639241*7 + O(7^20) -5089610942601231 + O(7^19) -15136561004280096 + O(7^20) 26123991769849768 + O(7^20) 
-    -28391186607959997*7^-1 + O(7^19))
+(12586493*7 + O(7^10) 19221514*7 + O(7^10) -19207436*7 + O(7^10) -10636635*7 + O(7^10) 128831118 + O(7^10) 67444962 + O(7^10) -23020322 + O(7^10) 401602170*7^-1 + O(7^10))
 10;
 */
 
@@ -37,20 +36,21 @@ v2:=v.2; // xi2 is then the dot product of v1 with the 3 regular 1-forms
 v3:=v.3; // xi3 is then the dot product of v1 with the 3 regular 1-forms
 
 v1;
-// (1 + O(7^10) O(7^10) O(7^10) -139167240 + O(7^10))
+// (1 + O(7^9) O(7^9) O(7^9) -18106419 + O(7^9))
 v2;
-// (O(7^10) 1 + O(7^10) O(7^10) 93159229 + O(7^10))
+// (O(7^9) 1 + O(7^9) O(7^9) 12452015 + O(7^9))
 v3;
-// (O(7^10) O(7^10) 1 + O(7^10) 8834289 + O(7^10))
+// (O(7^9) O(7^9) 1 + O(7^9) 8834289 + O(7^9))
+
 
 // Computing that the Coleman integrals of xi1 vanish between P1 and P = P3,...,P5
 DotProduct(v1,Vector(K,[IP1P3[i]: i in [1..4]]));
 DotProduct(v1,Vector(K,[IP1P4[i]: i in [1..4]]));
 DotProduct(v1,Vector(K,[IP1P5[i]: i in [1..4]]));
 /*
-O(7^11)
-O(7^11)
-O(7^11)
+O(7^10)
+O(7^10)
+O(7^10)
 */
 
 // Computing that the Coleman integrals of xi2 vanish between P1 and P = P3,...,P5
@@ -58,9 +58,9 @@ DotProduct(v2,Vector(K,[IP1P3[i]: i in [1..4]]));
 DotProduct(v2,Vector(K,[IP1P4[i]: i in [1..4]]));
 DotProduct(v2,Vector(K,[IP1P5[i]: i in [1..4]]));
 /*
-O(7^11)
-O(7^11)
-O(7^11)
+O(7^10)
+O(7^10)
+O(7^10)
 */
 
 // Computing that the Coleman integrals of xi3 vanish between P1 and P = P3,...,P5
@@ -68,9 +68,9 @@ DotProduct(v2,Vector(K,[IP1P3[i]: i in [1..4]]));
 DotProduct(v2,Vector(K,[IP1P4[i]: i in [1..4]]));
 DotProduct(v2,Vector(K,[IP1P5[i]: i in [1..4]]));
 /*
-O(7^11)
-O(7^11)
-O(7^11)
+O(7^10)
+O(7^10)
+O(7^10)
 */
 
 // Carry out effective Chabauty automatically (without using the above computations)

@@ -1852,7 +1852,11 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   IP1P2,Nround:=round_to_Qp(IP1P2);
 
   assert Nround ge NIP1P2;                          // Check that rounding error is within error bound.
+  
   NIP1P2:=Ceiling(NIP1P2);
+  for i:=1 to #basis do
+    IP1P2[i]:=IP1P2[i]+O(Parent(IP1P2[i])!p^(NIP1P2));
+  end for;
 
   return IP1P2,NIP1P2;
 end function;

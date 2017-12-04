@@ -42,9 +42,9 @@ v1:=v.1; //xi1 is then the dot product of v1 with the 3 regular 1-forms
 v2:=v.2; //xi2 is then the dot product of v2 with the 3 regular 1-forms
 
 v1;
-// (1 + O(3^9) 0 6991*3 + O(3^10))
+// (1 + O(3^9) 0 430*3 + O(3^8))
 v2;
-// (0 1 + O(3^9) -8908*3^2 + O(3^11))
+// (0 1 + O(3^9) -160*3^2 + O(3^8))
 
 // Computing that the Coleman integrals of xi1 vanish between P1 and P = P3,...,P8
 DotProduct(v1,Vector(K,[IP1P3[i]: i in [1..3]]));
@@ -54,12 +54,12 @@ DotProduct(v1,Vector(K,[IP1P6[i]: i in [1..3]]));
 DotProduct(v1,Vector(K,[IP1P7[i]: i in [1..3]]));
 DotProduct(v1,Vector(K,[IP1P8[i]: i in [1..3]]));
 /*
-O(3^11)
-O(3^11)
-O(3^12)
-O(3^11)
-O(3^11)
-O(3^12)
+O(3^9)
+O(3^9)
+O(3^9)
+O(3^9)
+O(3^9)
+O(3^9)
 */
 
 // Computing that the Coleman integrals of xi2 vanish between P1 and P = P3,...,P8
@@ -70,12 +70,12 @@ DotProduct(v2,Vector(K,[IP1P6[i]: i in [1..3]]));
 DotProduct(v2,Vector(K,[IP1P7[i]: i in [1..3]]));
 DotProduct(v2,Vector(K,[IP1P8[i]: i in [1..3]]));
 /*
-O(3^12)
-O(3^12)
-O(3^13)
-O(3^12)
-O(3^12)
-O(3^13)
+O(3^9)
+O(3^9)
+O(3^9)
+O(3^9)
+O(3^9)
+O(3^9)
 */
 
 // Carry out effective Chabauty automatically (without using the above computations)

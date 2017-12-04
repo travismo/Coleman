@@ -806,19 +806,3 @@ torsion_packet:=function(P,data:bound:=0,e:=1);
   return pointlist;
 
 end function;
-
-    © 2017 GitHub, Inc.
-    Terms
-    Privacy
-    Security
-    Status
-    Help
-
-    Contact GitHub
-    API
-    Training
-    Shop
-    Blog
-    About
-
-

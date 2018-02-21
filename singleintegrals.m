@@ -47,7 +47,7 @@ frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_
 end function;
 
 
-coleman_data:=function(Q,p,N:useU:=false,b0:=0,b1:=0)
+coleman_data:=function(Q,p,N:useU:=false,b0:=[],b1:=[])
 
   // Takes a polynomial Q in two variables x,y over the rationals which is monic in y.
   // Returns the Coleman data of (the projective nonsingular model of) the curve defined
@@ -535,6 +535,52 @@ frobenius_pt:=function(P,data);
     delete P`index;
 
   return P;
+end function;
+
+
+teichmueller_pt:=function(P,data)
+
+  // Compute the Teichmueller point in the residue disk at a good point P
+
+  x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf;
+  d:=Degree(Q); K:=Parent(x0); Ky:=PolynomialRing(K);
+
+  if is_bad(P,data) then
+    error "Point is bad";
+  end if;
+
+  x0new:=K!TeichmuellerLift(FiniteField(p)!x0,pAdicQuotientRing(p,N)); 
+  b:=P`b; 
+  W0invx0:=Transpose(Evaluate(W0^(-1),x0));
+  ypowers:=Vector(b)*W0invx0;
+  y0:=ypowers[2];
+  
+  C:=Coefficients(Q);
+  D:=[];
+  for i:=1 to #C do
+    D[i]:=Evaluate(C[i],x0new);
+  end for;
+  fy:=Ky!D;
+
+  y0new:=HenselLift(fy,y0); // Hensel lifting
+  y0newpowers:=[];
+  y0newpowers[1]:=K!1;
+  for i:=2 to d do
+    y0newpowers[i]:=y0newpowers[i-1]*y0new;
+  end for;
+  y0newpowers:=Vector(y0newpowers);
+
+  W0x0:=Transpose(Evaluate(W0,x0));
+  b:=y0newpowers*W0x0;
+
+  P`x:=x0new;
+  P`b:=b;
+  delete P`xt;
+  delete P`bt;
+  delete P`index;
+
+  return P;
+
 end function;
 
 

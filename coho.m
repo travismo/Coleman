@@ -79,7 +79,7 @@ ddx_vec:=function(v)
 end function;
 
 
-reduce_mod_Q:=function(f,Q)
+reduce_mod_Q_exact:=function(f,Q)
 
   // Eliminate powers of y >= d_x.
 
@@ -88,6 +88,28 @@ reduce_mod_Q:=function(f,Q)
   end while;
   return f;
 end function;
+
+
+poly_to_vec:=function(poly,degx,degy);
+
+  // Converts a polynomial of degree degx in x and 
+  // degy in y to a vector of coefficients.
+
+  dim:=(degy+1)*(degx+1);
+  v:=[];
+  cnt:=1;
+  for i:=0 to degy do
+    for j:=0 to degx do
+      v[cnt]:=Coefficient(Coefficient(poly,i),j);
+      cnt:=cnt+1;
+    end for;
+  end for;
+
+  V:=VectorSpace(RationalField(),dim);
+
+  return V!v;
+end function;
+
 
 
 ram:=function(J0,Jinf)
@@ -134,7 +156,7 @@ con_mat:=function(Q,Delta,s)
     list[i]:=-(i-1)*y^(i-2)*(s/Delta)*ddx(Q);
   end for;
   for i:=1 to #list do
-    list[i]:=reduce_mod_Q(list[i],Q);
+    list[i]:=reduce_mod_Q_exact(list[i],Q);
   end for;
   G:=ZeroMatrix(Qx,d,d);
   for i:=1 to d do
@@ -515,7 +537,7 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
 
   cobound:=sub<cocyc|list>;
 
-  if b0 eq 0 then
+  if b0 eq [] then
     b0:=Basis(forms1stkind);
   end if;  
 
@@ -525,7 +547,7 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
   end for;
   
   dualspace:=Complement(cocyc,forms1stkind+cobound); // Take the dual w.r.t. cup product? Right now just any complement, seems sufficient.
-  if b1 eq 0 then
+  if b1 eq [] then
     b1:=Basis(dualspace);
   end if;  
 

@@ -393,7 +393,7 @@ res_inf:=function(w,Q,r,W0,Winf,Ginf,Jinf,Tinfinv)
 end function;
 
 
-basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
+basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2)
   
   // Compute a basis for H^1(X).
 
@@ -437,7 +437,7 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
 
   E0nEinf:=Kernel(matE0nEinf);
 
-  // Compute a matrix with kernel the elements of E0 logarithmic at infinity. (is this correct?)
+  // Compute a matrix with kernel the elements of E0 logarithmic at infinity.
 
   matlogforms:=ZeroMatrix(RationalField(),dimE0,d*(-ord0W-ordinfW-ordinfWinv-1));
   for i:=1 to dimE0 do
@@ -533,7 +533,7 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
   end for;
   matd:=Matrix(list);
 
-  // Compute H1(X)
+  // Compute bases
 
   cobound:=sub<cocyc|list>;
 
@@ -541,25 +541,33 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1)
     b0:=Basis(forms1stkind);
   end if;  
 
-  b4:=[];
+  b5:=[];
   for i:=2 to dimB0nBinf do
-    b4:=Append(b4,E0!list[i]);
+    b5:=Append(b5,E0!list[i]);
   end for;
   
-  dualspace:=Complement(cocyc,forms1stkind+cobound); // Take the dual w.r.t. cup product? Right now just any complement, seems sufficient.
+  dualspace:=Complement(cocyc,forms1stkind+cobound); // Take the dual w.r.t. cup product? Right now just any complement of forms of the 1st kind in H^1(X).
   if b1 eq [] then
     b1:=Basis(dualspace);
   end if;  
 
   basisH1X:=b0 cat b1;
   dimH1X:=#basisH1X;
-  
-  b2:=Basis(Complement(E0nEinf,cocyc));
-  b3:=Basis(Complement(E0,E0nEinf));  
-  
-  b:=b0 cat b1 cat b2 cat b3 cat b4;
 
-  dimH1U:=#b0+#b1+#b2;
+  finiteregularlogarithmic:=logforms meet Kernel(matres0); // 1-forms that generate H^1(Y) over H^1(X), where Y=X-x^{-1}(\infty)
+  H1YmodH1X:=Complement(finiteregularlogarithmic,forms1stkind);
+
+  if b2 eq [] then
+    b2:=Basis(H1YmodH1X);
+  end if;
+
+  b3:=Basis(Complement(E0nEinf,cocyc+H1YmodH1X));
+
+  b4:=Basis(Complement(E0,E0nEinf));  
+  
+  b:=b0 cat b1 cat b2 cat b3 cat b4 cat b5;
+
+  dimH1U:=#b0+#b1+#b2+#b3;
 
   if useU then
     dim:=dimH1U;

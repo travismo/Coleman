@@ -93,9 +93,9 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=[],b1:=[],b2:=[])
 
   // formatting the output into a record:
 
-  format:=recformat<Q,p,N,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys>;
+  format:=recformat<Q,p,N,g,W0,Winf,r,Delta,s,G0,Ginf,e0,einf,delta,basis,quo_map,integrals,F,f0list,finflist,fendlist,Nmax,red_list_fin,red_list_inf,minpolys>;
   out:=rec<format|>;
-  out`Q:=Q; out`p:=p; out`N:=N; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
+  out`Q:=Q; out`p:=p; out`N:=N; out`g:=g; out`W0:=W0; out`Winf:=Winf; out`r:=r; out`Delta:=Delta; out`s:=s; out`G0:=G0; out`Ginf:=Ginf; 
   out`e0:=e0; out`einf:=einf; out`delta:=delta; out`basis:=basis; out`quo_map:=quo_map; out`integrals:=integrals; out`F:=F; out`f0list:=f0list; 
   out`finflist:=finflist; out`fendlist:=fendlist; out`Nmax:=Nmax; out`red_list_fin:=red_list_fin; out`red_list_inf:=red_list_inf;
 

@@ -47,7 +47,7 @@ frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_
 end function;
 
 
-coleman_data:=function(Q,p,N:useU:=false,b0:=[],b1:=[],b2:=[])
+coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[])
 
   // Takes a polynomial Q in two variables x,y over the rationals which is monic in y.
   // Returns the Coleman data of (the projective nonsingular model of) the curve defined
@@ -81,7 +81,7 @@ coleman_data:=function(Q,p,N:useU:=false,b0:=[],b1:=[],b2:=[])
  
   delta:=Floor(log(p,-(ord_0_mat(W)+1)*einf))+Floor(log(p,(Floor((2*g-2)/d)+1)*einf));
 
-  basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2);
+  basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2);
 
   Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf);
 

@@ -90,17 +90,16 @@ reduce_mod_Q_exact:=function(f,Q)
 end function;
 
 
-poly_to_vec:=function(poly,degx,degy);
+polys_to_vec:=function(polys,degx);
 
-  // Converts a polynomial of degree degx in x and 
-  // degy in y to a vector of coefficients.
+  // Converts a sequence of polynomials to a vector  
 
-  dim:=(degy+1)*(degx+1);
+  dim:=#polys*(degx+1);
   v:=[];
   cnt:=1;
-  for i:=0 to degy do
+  for i:=1 to #polys do
     for j:=0 to degx do
-      v[cnt]:=Coefficient(Coefficient(poly,i),j);
+      v[cnt]:=Coefficient(polys[i],j);
       cnt:=cnt+1;
     end for;
   end for;
@@ -393,7 +392,7 @@ res_inf:=function(w,Q,r,W0,Winf,Ginf,Jinf,Tinfinv)
 end function;
 
 
-basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2)
+basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2)
   
   // Compute a basis for H^1(X).
 
@@ -537,8 +536,13 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2)
 
   cobound:=sub<cocyc|list>;
 
-  if b0 eq [] then
+  if basis0 eq [] then
     b0:=Basis(forms1stkind);
+  else
+    b0:=[];
+    for i:=1 to #basis0 do
+      b0[i]:=polys_to_vec(basis0[i],deg_bound_E0);
+    end for;
   end if;  
 
   b5:=[];
@@ -547,8 +551,13 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2)
   end for;
   
   dualspace:=Complement(cocyc,forms1stkind+cobound); // Take the dual w.r.t. cup product? Right now just any complement of forms of the 1st kind in H^1(X).
-  if b1 eq [] then
+  if basis1 eq [] then
     b1:=Basis(dualspace);
+  else
+    b1:=[];
+    for i:=1 to #basis1 do
+      b1[i]:=polys_to_vec(basis1[i],deg_bound_E0);
+    end for;
   end if;  
 
   basisH1X:=b0 cat b1;
@@ -557,8 +566,13 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2)
   finiteregularlogarithmic:=logforms meet Kernel(matres0); // 1-forms that generate H^1(Y) over H^1(X), where Y=X-x^{-1}(\infty)
   H1YmodH1X:=Complement(finiteregularlogarithmic,forms1stkind);
 
-  if b2 eq [] then
+  if basis2 eq [] then
     b2:=Basis(H1YmodH1X);
+  else
+    b2:=[];
+    for i:=1 to #basis2 do
+      b2[i]:=polys_to_vec(basis2[i],deg_bound_E0);
+    end for;
   end if;
 
   b3:=Basis(Complement(E0nEinf,cocyc+H1YmodH1X));
@@ -581,8 +595,8 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,b0,b1,b2)
       denom:=LCM(denom,Denominator(b[i][j]));
     end for;
     b[i]:=denom*b[i];
-  end for;
-  
+  end for;  
+
   matb:=Matrix(b);
   quo_map:=matb^(-1);
 

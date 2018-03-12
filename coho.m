@@ -595,7 +595,7 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,bas
       denom:=LCM(denom,Denominator(b[i][j]));
     end for;
     b[i]:=denom*b[i];
-  end for;  
+  end for; 
 
   matb:=Matrix(b);
   quo_map:=matb^(-1);

@@ -1906,3 +1906,37 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
 
   return IP1P2,NIP1P2;
 end function;
+
+
+coleman_integral:=function(P1,P2,dif,data:e:=1,IP1P2:=0,NIP1P2:=0);
+
+  // Integral of 1-form dif from P1 to P2.
+
+  Q:=data`Q; p:=data`p; N:=data`N; Nmax:=data`Nmax; r:=data`r; W0:=data`W0; Winf:=data`Winf;
+  G0:=data`G0; Ginf:=data`Ginf; red_list_fin:=data`red_list_fin; red_list_inf:=data`red_list_inf;
+  basis:=data`basis; integrals:= data`integrals; quo_map:=data`quo_map;
+
+  coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map);
+
+  if NIP1P2 eq 0 then 
+    IP1P2,NIP1P2:=coleman_integrals_on_basis(P1,P2,data:e:=e);
+  end if;
+  
+  f0P1,Nf0P1:=evalf0(f0,P1,data);
+  f0P2,Nf0P2:=evalf0(f0,P2,data);
+  finfP1,NfinfP1:=evalfinf(finf,P1,data);
+  finfP2,NfinfP2:=evalfinf(finf,P2,data);
+  fendP1,NfendP1:=evalfend(fend,P1,data);
+  fendP2,NfendP2:=evalfend(fend,P2,data);
+
+  IdifP1P2:=f0P2-f0P1+finfP2-finfP1+fendP2-fendP1;
+  NIdifP1P2:=Minimum([Nf0P1,Nf0P2,NfinfP1,NfinfP2,NfendP1,NfendP2]);
+  
+  for i:=1 to #coefs do
+    IdifP1P2:=IdifP1P2+coefs[i]*IP1P2[i];
+    NIdifP1P2:=Minimum(NIdifP1P2,NIP1P2+Valuation(coefs[i],p));
+  end for;
+
+  return IdifP1P2, NIdifP1P2;
+
+end function;

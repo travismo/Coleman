@@ -44,7 +44,7 @@ v2:=v.2; //xi2 is then the dot product of v2 with the 3 regular 1-forms
 v1;
 // (1 + O(3^9) 0 430*3 + O(3^8))
 v2;
-// (0 1 + O(3^9) -160*3^2 + O(3^8))
+// (0 1 + O(3^9) -320*3^2 + O(3^8))
 
 // Computing that the Coleman integrals of xi1 vanish between P1 and P = P3,...,P8
 DotProduct(v1,Vector(K,[IP1P3[i]: i in [1..3]]));
@@ -162,6 +162,6 @@ v;
 /*
 [
     [ 1 + O(3^9), O(3^9), 430*3 + O(3^9) ],
-    [ O(3^9), 1 + O(3^9), 569*3^2 + O(3^9) ]
+    [ O(3^9), 1 + O(3^9), -1049*3^2 + O(3^9) ]
 ]
 */

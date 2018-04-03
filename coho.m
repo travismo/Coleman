@@ -2,11 +2,11 @@ mat_W0:=function(Q)
 
   // Compute the matrix W0 using MaximalOrderFinite
 
-  Qx<x>:=RationalFunctionField(RationalField());
-  K:=ext<Qx|Q>;
+  Qt:=RationalFunctionField(RationalField());
+  K:=ext<Qt|Q>;
   b0:=Basis(MaximalOrderFinite(K));
   d:=Degree(Q);
-  mat:=ZeroMatrix(Qx,d,d);
+  mat:=ZeroMatrix(Qt,d,d);
   for i:=1 to d do
     for j:=1 to d do
       mat[i,j]:=Eltseq(K!b0[i])[j];
@@ -21,24 +21,24 @@ mat_Winf:=function(Q);
 
   // Compute the matrix Winf using MaximalOrderFinite
 
-  Qx<x>:=RationalFunctionField(RationalField());
-  Qxy<y>:=PolynomialRing(Qx);
-  Qnew:=Qxy!0;
+  Qt:=RationalFunctionField(RationalField());
+  Qty:=PolynomialRing(Qt);
+  Qnew:=Qty!0;
   C:=Coefficients(Q);
   for i:=1 to #C do
-    Qnew:=Qnew+Evaluate(C[i],1/x)*y^(i-1);
+    Qnew:=Qnew+Evaluate(C[i],1/Qt.1)*Qty.1^(i-1);
   end for;
   Q:=Qnew;
-  K:=ext<Qx|Q>;
+  K:=ext<Qt|Q>;
   binf:=Basis(MaximalOrderFinite(K));
   d:=Degree(Q);
-  mat:=ZeroMatrix(Qx,d,d);
+  mat:=ZeroMatrix(Qt,d,d);
   for i:=1 to d do
     for j:=1 to d do
       mat[i,j]:=Eltseq(K!binf[i])[j];
     end for;
   end for;
-  return Evaluate(mat,1/x);
+  return Evaluate(mat,1/Qt.1);
 
 end function;
 
@@ -112,6 +112,9 @@ end function;
 
 
 ram:=function(J0,Jinf)
+
+  // Return the maximum finite and infinite ramification
+  // indices, given the matrices J0, Jinf.
 
   d:=NumberOfRows(Jinf);
   
@@ -590,11 +593,11 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,bas
   end if;
 
   for i:=1 to dim do
-    denom:=1;
+    valdenom:=0;
     for j:=1 to dimE0 do
-      denom:=LCM(denom,Denominator(b[i][j]));
+      valdenom:=Minimum(valdenom,Valuation(b[i][j],p));
     end for;
-    b[i]:=denom*b[i];
+    b[i]:=p^(-valdenom)*b[i];
   end for; 
 
   matb:=Matrix(b);
@@ -609,15 +612,13 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,bas
     integrals:=Append(integrals,LeadingCoefficient(r)*vec); // factor lc(r) here, since working with dx/z basis instead of dx/r
   end for;
 
-  Z:=IntegerRing();
-  Zx<x>:=PolynomialRing(Z);
-  Zxd:=RSpace(Zx,d);
-  basis:=[Zxd|];
+  Qxd:=RSpace(Qx,d);
+  basis:=[Qxd|];
   
   for i:=1 to dim do
-    vec:=Zxd!0;
+    vec:=Qxd!0;
     for j:=1 to dimE0 do
-      vec[basisE0[j][1]+1]:=vec[basisE0[j][1]+1]+(Z!(b[i][j]))*x^(basisE0[j][2]);
+      vec[basisE0[j][1]+1]:=vec[basisE0[j][1]+1]+(RationalField()!(b[i][j]))*(Qx.1)^(basisE0[j][2]);
     end for;
     basis:=Append(basis,vec);
   end for;

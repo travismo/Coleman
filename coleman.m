@@ -1,6 +1,5 @@
-Z:=IntegerRing();
-Zx<x>:=PolynomialRing(Z);
-Zxy<y>:=PolynomialRing(Zx);
+Qx<x>:=PolynomialRing(RationalField());
+Qxy<y>:=PolynomialRing(Qx);
 
 load "auxpolys.m";
 load "coho.m";

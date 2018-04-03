@@ -10,7 +10,7 @@ reduce_mod_pN_Q:=function(f,p,N);
       m:=p^(N-ord);
       Zmodm:=IntegerRing(m);
       unit:=f/(p^ord);
-      f:=Z!((Zmodm!Numerator(unit))/(Zmodm!Denominator(unit)));
+      f:=IntegerRing()!((Zmodm!Numerator(unit))/(Zmodm!Denominator(unit)));
       if 2*f ge m then
         f:=f-m;
       end if;
@@ -38,10 +38,9 @@ reduce_mod_pN_Qx:=function(f,p,N);
 
     Zmodm:=IntegerRing(m);
     unitinv:=(Zmodm!unit)^-1;
-    Zx:=PolynomialRing(IntegerRing());
     Zmodmx:=PolynomialRing(Zmodm);
 
-    f:=Qx!Zx!(unitinv*(Zmodmx!f));
+    f:=Qx!PolynomialRing(IntegerRing())!(unitinv*(Zmodmx!f));
     return f/ppow;
   end if;
 end function;
@@ -210,7 +209,7 @@ inv_Qi:=function(f,p,N);
   inv:=Qi!0;
   C:=Coefficients(invmodp);
   for i:=1 to #C do
-    inv:=inv+(Z!C[i])*(Qi.1)^(i-1);
+    inv:=inv+(IntegerRing()!C[i])*(Qi.1)^(i-1);
   end for;
   
   prec:=[];
@@ -255,8 +254,6 @@ red_lists:=function(Q,p,N,r,W0,Winf,G0,Ginf,e0,einf,J0,Jinf,T0,Tinf,T0inv,Tinfin
 
   d:=Degree(Q);
   W:=Winf*W0^(-1);
-
-  Qx:=PolynomialRing(RationalField());
 
   rQ:=Qx!r;
   fac:=Factorisation(rQ);
@@ -360,14 +357,13 @@ convert_to_Qxzzinvd:=function(w,Q);
 
   d:=Degree(Q);
   Z:=IntegerRing();
-  Qx<x>:=PolynomialRing(RationalField());
   Qxz<z>:=LaurentSeriesRing(Qx);
   C:=[];
   for i:=1 to d do
     D,val:=Coefficients(w[i]);
     E:=[];
     for j:=1 to #D do
-      E[j]:=(Zx!D[j]);  
+      E[j]:=(Qx!PolynomialRing(IntegerRing())!D[j]);  
     end for;
     C[i]:=z^(-1)*(Qxz.1)^(val+1)*(Qxz!E); 
   end for;
@@ -395,7 +391,6 @@ coho_red_fin:=function(w,Q,p,N,r,G0,red_list_fin);
   // Reduce the 1-form w dx/z w.r.t. the basis [b^0_0,..,b^0_{d-1}] in cohomology 
   // until it has logaritmic poles at all points lying over the zeros of r.
 
-  Qx<x>:=PolynomialRing(RationalField());
   Qxz<z>:=LaurentSeriesRing(Qx);
   
   d:=Degree(Q);
@@ -533,7 +528,6 @@ change_basis_b0binf:=function(w,p,N,r,W0,Winf);
 
   // Change basis from [b^0_0,..b^0_(d-1)] to [b^{inf}_0,..,b^{inf}_{d-1}].
 
-  Qx<x>:=PolynomialRing(RationalField());
   d:=NumberOfRows(Winf);
   
   r:=Qx!r;
@@ -571,7 +565,6 @@ coho_red_inf:=function(w,Q,p,N,r,W0,Winf,Ginf,red_list_inf);
   Qttinv<t>:=LaurentSeriesRing(RationalField());
   Qttinvd:=RSpace(Qttinv,d);
   Qd:=RSpace(RationalField(),d);
-  Qx:=PolynomialRing(RationalField());
   Qxxinv<x>:=LaurentSeriesRing(RationalField());
   Qxxinvd:=RSpace(Qxxinv,d);
   
@@ -667,7 +660,6 @@ change_basis_binfb0:=function(w,W0,Winf);
 
   // Change basis from [b^{inf}_0,..,b^{inf}_{d-1}] to [b^0_0,..b^0_(d-1)].
 
-  Qx<x>:=PolynomialRing(RationalField());
   t:=Parent(w[1]).1;
   
   W:=Winf*W0^(-1);
@@ -682,7 +674,7 @@ change_basis_binfb0:=function(w,W0,Winf);
     end if;
     w[1,i]:=temp;
   end for;
-  w:=Evaluate(w,x);
+  w:=Evaluate(w,Qx.1);
   return w;
 end function;
 

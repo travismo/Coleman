@@ -67,7 +67,7 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[])
   Winfinv:=Winf^(-1);
   W:=Winf*W0^(-1);
 
-  if (LeadingCoefficient(Delta) mod p eq 0) or (Degree(r) lt 1) or (not smooth(r,p)) or (not (is_integral(W0,p) and is_integral(W0inv,p) and is_integral(Winf,p) and is_integral(Winfinv,p))) then
+  if (FiniteField(p)!LeadingCoefficient(Delta) eq 0) or (Degree(r) lt 1) or (not smooth(r,p)) or (not (is_integral(W0,p) and is_integral(W0inv,p) and is_integral(Winf,p) and is_integral(Winfinv,p))) then
     error "bad prime";
   end if;
 
@@ -283,9 +283,6 @@ minpoly:=function(f1,f2)
   
   end while;
 
-  Qx:=PolynomialRing(RationalField());
-  Qxy:=PolynomialRing(Qx);
-
   poly:=Qxy!0;
   for i:=0 to d do
     for j:=0 to d do
@@ -318,19 +315,17 @@ update_minpolys:=function(data,inf,index);
   Q:=data`Q; W0:=data`W0; Winf:=data`Winf; 
   d:=Degree(Q);
 
-  Qx:=PolynomialRing(RationalField()); Qxy:=PolynomialRing(Qx);
-
   if not assigned data`minpolys then
     data`minpolys:=[ZeroMatrix(Qxy,d+2,d+2),ZeroMatrix(Qxy,d+2,d+2)];
   end if;
   minpolys:=data`minpolys;
 
-  Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
+  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
 
-  f:=Qxy!0;
+  f:=Qty!0;
   for i:=0 to d do
     for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qxy.1^i*Qx.1^j;
+      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
@@ -354,12 +349,12 @@ update_minpolys:=function(data,inf,index);
     if index eq 0 then
        for i:=1 to d do
          if minpolys[2][1,i+1] eq 0 then
-           minpolys[2][1,i+1]:=minpoly(FF!(1/Qx.1),bfun[i]);
+           minpolys[2][1,i+1]:=minpoly(FF!(1/Qt.1),bfun[i]);
          end if;
        end for;
     else
       if minpolys[2][index+1,1] eq 0 then
-        minpolys[2][index+1,1]:=minpoly(bfun[index],FF!(1/Qx.1));
+        minpolys[2][index+1,1]:=minpoly(bfun[index],FF!(1/Qt.1));
       end if;
       for i:=1 to d do
         if minpolys[2][index+1,i+1] eq 0 then
@@ -371,12 +366,12 @@ update_minpolys:=function(data,inf,index);
     if index eq 0 then
       for i:=1 to d do
         if minpolys[1][1,i+1] eq 0 then
-          minpolys[1][1,i+1]:=minpoly(FF!Qx.1,bfun[i]);
+          minpolys[1][1,i+1]:=minpoly(FF!Qt.1,bfun[i]);
         end if;
       end for;
     else
       if minpolys[1][index+1,1] eq 0 then
-        minpolys[1][index+1,1]:=minpoly(bfun[index],FF!Qx.1);
+        minpolys[1][index+1,1]:=minpoly(bfun[index],FF!Qt.1);
       end if;
       for i:=1 to d do
         if minpolys[1][index+1,i+1] eq 0 then
@@ -403,12 +398,12 @@ frobenius_pt:=function(P,data);
   x0p:=x0^p;
   b:=P`b;
 
-  Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
+  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
 
-  f:=Qxy!0;
+  f:=Qty!0;
   for i:=0 to d do
     for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qxy.1^i*Qx.1^j;
+      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
@@ -451,7 +446,7 @@ frobenius_pt:=function(P,data);
       if assigned data`minpolys and data`minpolys[2][1,i+1] ne 0 then
         poly:=data`minpolys[2][1,i+1];
       else
-        poly:=minpoly(FF!(1/Qx.1),bi);
+        poly:=minpoly(FF!(1/Qt.1),bi);
       end if;
 
       C:=Coefficients(poly);
@@ -494,7 +489,7 @@ frobenius_pt:=function(P,data);
       if assigned data`minpolys and data`minpolys[1][1,i+1] ne 0 then
         poly:=data`minpolys[1][1,i+1];
       else
-        poly:=minpoly(FF!Qx.1,bi);
+        poly:=minpoly(FF!Qt.1,bi);
       end if;
 
       C:=Coefficients(poly);
@@ -899,13 +894,13 @@ local_coord:=function(P,prec,data);
 
   x0:=P`x; Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; d:=Degree(Q); b:=P`b;
   K:=Parent(x0); Kt<t>:=PowerSeriesRing(K,prec); Kty:=PolynomialRing(Kt);
-  Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
+  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
   Fp:=FiniteField(p);
 
-  f:=Qxy!0;
+  f:=Qty!0;
   for i:=0 to d do
     for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qxy.1^i*Qx.1^j;
+      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
@@ -969,7 +964,7 @@ local_coord:=function(P,prec,data);
         if assigned data`minpolys and data`minpolys[2][1,i+1] ne 0 then
           poly:=data`minpolys[2][1,i+1]; 
         else 
-          poly:=minpoly(FF!(1/Qx.1),bfun[i]);
+          poly:=minpoly(FF!(1/Qt.1),bfun[i]);
         end if;
 
         C:=Coefficients(poly);
@@ -1000,7 +995,7 @@ local_coord:=function(P,prec,data);
       if assigned data`minpolys and data`minpolys[2][index+1,1] ne 0 then
         poly:=data`minpolys[2][index+1,1];
       else
-        poly:=minpoly(bfun[index],FF!1/(Qx.1));
+        poly:=minpoly(bfun[index],FF!1/(Qt.1));
       end if;
 
       C:=Coefficients(poly);
@@ -1088,7 +1083,7 @@ local_coord:=function(P,prec,data);
         if assigned data`minpolys and data`minpolys[1][1,i+1] ne 0 then
           poly:=data`minpolys[1][1,i+1];
         else
-          poly:=minpoly(FF!Qx.1,bfun[i]);
+          poly:=minpoly(FF!Qt.1,bfun[i]);
         end if;
 
         C:=Coefficients(poly);
@@ -1119,7 +1114,7 @@ local_coord:=function(P,prec,data);
       if assigned data`minpolys and data`minpolys[1][index+1,1] ne 0 then
         poly:=data`minpolys[1][index+1,1];
       else
-        poly:=minpoly(bfun[index],FF!Qx.1);
+        poly:=minpoly(bfun[index],FF!Qt.1);
       end if;
 
       C:=Coefficients(poly);
@@ -1243,12 +1238,12 @@ find_bad_point_in_disk:=function(P,data);
     x0:=HenselLift(rQp,x0);
   end if;
 
-  Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
+  Qt:=RationalFunctionField(RationalField()); Qty:=PolynomialRing(Qt);
 
-  f:=Qxy!0;
+  f:=Qty!0;
   for i:=0 to d do
     for j:=0 to Degree(Coefficient(Q,i)) do
-      f:=f+Coefficient(Coefficient(Q,i),j)*Qxy.1^i*Qx.1^j;
+      f:=f+Coefficient(Coefficient(Q,i),j)*Qty.1^i*Qt.1^j;
     end for;
   end for;  
   FF:=FunctionField(f); // function field of curve
@@ -1272,9 +1267,9 @@ find_bad_point_in_disk:=function(P,data);
 
   if index eq 0 then
     if P`inf then
-      xfun:=FF!(1/Qx.1);
+      xfun:=FF!(1/Qt.1);
     else
-      xfun:=FF!(Qx.1);
+      xfun:=FF!(Qt.1);
     end if;
 
     for i:=1 to d do
@@ -1299,9 +1294,9 @@ find_bad_point_in_disk:=function(P,data);
   else
    bindex:=bfun[index];
    if P`inf then
-      xfun:=FF!(1/Qx.1);
+      xfun:=FF!(1/Qt.1);
     else
-      xfun:=FF!(Qx.1);
+      xfun:=FF!(Qt.1);
     end if;
     poly:=minpoly(xfun,bindex);
     C:=Coefficients(poly);
@@ -1596,8 +1591,8 @@ evalf0:=function(f0,P,data);
 
   if P`inf then 
     Winv:=W0*Winf^(-1); 
-    Qx:=BaseRing(Winv);
-    b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qx.1),x0)); // values of the b_i^0 at P
+    Qt:=BaseRing(Winv);
+    b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qt.1),x0)); // values of the b_i^0 at P
     
     z0:=Evaluate(r,1/x0)/lcr;
     invz0:=1/z0;
@@ -1717,8 +1712,8 @@ evalfend:=function(fend,P,data);
 
   if P`inf then
     Winv:=W0*Winf^(-1);
-    Qx:=BaseRing(Winv);
-    b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qx.1),x0)); // values of the b_i^0 at P
+    Qt:=BaseRing(Winv);
+    b:=Vector(b)*Transpose(Evaluate(Evaluate(Winv,1/Qt.1),x0)); // values of the b_i^0 at P
     fendP:=K!0;
     for i:=1 to d do
       fendi:=fend[i];
@@ -1916,7 +1911,7 @@ coleman_integral:=function(P1,P2,dif,data:e:=1,IP1P2:=0,NIP1P2:=0);
   G0:=data`G0; Ginf:=data`Ginf; red_list_fin:=data`red_list_fin; red_list_inf:=data`red_list_inf;
   basis:=data`basis; integrals:= data`integrals; quo_map:=data`quo_map;
 
-  coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map);
+  coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map); // TODO: handle precision here
 
   if NIP1P2 eq 0 then 
     IP1P2,NIP1P2:=coleman_integrals_on_basis(P1,P2,data:e:=e);
@@ -1936,6 +1931,9 @@ coleman_integral:=function(P1,P2,dif,data:e:=1,IP1P2:=0,NIP1P2:=0);
     IdifP1P2:=IdifP1P2+coefs[i]*IP1P2[i];
     NIdifP1P2:=Minimum(NIdifP1P2,NIP1P2+Valuation(coefs[i],p));
   end for;
+
+  NIdifP1P2:=Ceiling(NIdifP1P2);
+  IdifP1P2:=IdifP1P2+O(Parent(IdifP1P2)!p^NIdifP1P2);
 
   return IdifP1P2, NIdifP1P2;
 

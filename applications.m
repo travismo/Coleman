@@ -2,7 +2,7 @@ Fp_points:=function(data);
 
   // Finds all points on the reduction mod p of the curve given by data
 
-  Q:=data`Q; p:=data`p; d:=Degree(Q); W0:=data`W0; Winf:=data`Winf; 
+  Q:=data`Q; p:=data`p; d:=Degree(Q);  W0:=data`W0; Winf:=data`Winf; 
 
   Fp:=FiniteField(p); Fpx:=RationalFunctionField(Fp); Fpxy:=PolynomialRing(Fpx);
   f:=Fpxy!0;
@@ -80,7 +80,7 @@ Qp_points:=function(data:points:=[]);
   // an (incomplete) list pts can be specified by the user which will
   // then be completed.
   
-  Q:=data`Q; p:=data`p; N:=data`N; W0:=data`W0; Winf:=data`Winf; 
+  Q:=data`Q; p:=data`p; N:=data`N; r:=data`r; W0:=data`W0; Winf:=data`Winf; 
   d:=Degree(Q); Fp:=FiniteField(p); 
   Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
 
@@ -239,32 +239,69 @@ Qp_points:=function(data:points:=[]);
             end if;
           end for; 
         end if;
+
       else // finite point
         inf:=false;
         if Fppoint[4] eq 0 then // x - point[1] local coordinate
 
           x:=Qp!Fppoint[1];
-          W0invx:=Transpose(Evaluate(W0^(-1),x));
-          ypowersmodp:=Vector(Fppoint[2])*ChangeRing(W0invx,FiniteField(p));
-          y:=Qp!ypowersmodp[2];
 
-          C:=Coefficients(Q);
-          D:=[];
-          for i:=1 to #C do
-            D[i]:=Evaluate(C[i],x);
-          end for;
-          fy:=Qpy!Zpy!D;
+          if Valuation(Evaluate(r,x)) eq 0 then // good point
+            W0invx:=Transpose(Evaluate(W0^(-1),x));
+            ypowersmodp:=Vector(Fppoint[2])*ChangeRing(W0invx,FiniteField(p));
+            y:=Qp!ypowersmodp[2];
 
-          y:=HenselLift(fy,y); // Hensel lifting
-          ypowers:=[];
-          ypowers[1]:=Qp!1;
-          for i:=2 to d do
-            ypowers[i]:=ypowers[i-1]*y;
-          end for;
-          ypowers:=Vector(ypowers);
+            C:=Coefficients(Q);
+            D:=[];
+            for i:=1 to #C do
+              D[i]:=Evaluate(C[i],x);
+            end for;
+            fy:=Qpy!Zpy!D;
 
-          W0x:=Transpose(Evaluate(W0,x));
-          b:=Eltseq(ypowers*W0x);
+            y:=HenselLift(fy,y); // Hensel lifting
+            ypowers:=[];
+            ypowers[1]:=Qp!1;
+            for i:=2 to d do
+              ypowers[i]:=ypowers[i-1]*y;
+            end for;
+            ypowers:=Vector(ypowers);
+
+            W0x:=Transpose(Evaluate(W0,x));
+            b:=Eltseq(ypowers*W0x);
+          else // bad point
+            for j:=1 to d do
+              bj:=b0fun[j];
+
+              if not assigned data`minpolys or data`minpolys[1][1,j+1] eq 0 then
+                data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
+              end if;
+              poly:=data`minpolys[1][1,j+1];
+
+              C:=Coefficients(poly);
+              D:=[];
+              for k:=1 to #C do
+                D[k]:=Evaluate(C[k],x); 
+              end for;
+              fy:=Qpy!Zpy!D;
+              fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+              zeros:=[];
+              for j:=1 to #fac do
+                if Degree(fac[j][1]) eq 1 then
+                  zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+                end if;
+              end for;
+
+              done:=false;
+              k:=1;
+              while not done and k le #zeros do
+                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
+                  done:=true;
+                  b[j]:=zeros[k];
+                end if;
+                k:=k+1;
+              end while;
+            end for;
+          end if;
 
         else // x-point[1] not local coordinate
           index:=Fppoint[4];

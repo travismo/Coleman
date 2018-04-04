@@ -1377,9 +1377,9 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
     error "the points do not lie in the same residue disk";
   end if;
 
-  if ((x1 eq x2) and (b1 eq b2)) then 
-    return RSpace(K,#basis)!0, N*Degree(K);
-  end if;
+  //if ((x1 eq x2) and (b1 eq b2)) then 
+  //  return RSpace(K,#basis)!0, N*Degree(K);
+  //end if;
 
   if (Valuation(x1-x2)/Valuation(Parent(x1-x2)!p) ge N) and (Minimum([Valuation(b1[i]-b2[i])/Valuation(Parent(b1[i]-b2[i])!p):i in [1..d]]) ge N) then
     return RSpace(K,#basis)!0, N*Degree(K);
@@ -1904,7 +1904,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
     IP1P2[i]:=IP1P2[i]+O(Parent(IP1P2[i])!p^(NIP1P2));
   end for;
 
-  return IP1P2,NIP1P2;//,tinyP1toS1,NP1toS1,tinyP2toS2,NP2toS2,tinyS1toFS1,NS1toFS1,tinyS2toFS2,NFS2toS2,f0iS1,Nf0iS1,f0iS2,Nf0iS2,finfiS1,NfinfiS1,finfiS2,NfinfiS2,fendiS1,NfendiS1,fendiS2,NfendiS2;
+  return IP1P2,NIP1P2;
 end function;
 
 

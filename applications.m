@@ -152,14 +152,20 @@ Qp_points:=function(data:points:=[]);
               D[k]:=Evaluate(C[k],x); 
             end for;
             fy:=Qpy!Zpy!D;
-            zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+            fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+            zeros:=[];
+            for j:=1 to #fac do
+              if Degree(fac[j][1]) eq 1 then
+                zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+              end if;
+            end for;
 
             done:=false;
             k:=1;
             while not done and k le #zeros do
-              if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
+              if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
                 done:=true;
-                b[j]:=zeros[k][1];
+                b[j]:=zeros[k];
               end if;
               k:=k+1;
             end while;
@@ -179,14 +185,20 @@ Qp_points:=function(data:points:=[]);
             D[k]:=Evaluate(C[k],bindex); 
           end for;
           fy:=Qpy!Zpy!D;
-          zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+          fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+          zeros:=[];
+          for j:=1 to #fac do
+            if Degree(fac[j][1]) eq 1 then
+              zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+            end if;
+          end for;
 
           done:=false;
           k:=1;
           while not done and k le #zeros do
-            if (Fp!zeros[k][1]-Fppoint[1] eq 0) then 
+            if (Fp!zeros[k]-Fppoint[1] eq 0) then 
               done:=true;
-              x:=zeros[k][1];
+              x:=zeros[k];
             end if;
             k:=k+1;
           end while;
@@ -207,14 +219,20 @@ Qp_points:=function(data:points:=[]);
                 D[k]:=Evaluate(C[k],bindex); 
               end for;
               fy:=Qpy!Zpy!D;
-              zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+              fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+              zeros:=[];
+              for j:=1 to #fac do
+                if Degree(fac[j][1]) eq 1 then
+                  zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+                end if;
+              end for;
 
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
+                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
                   done:=true;
-                  b[j]:=zeros[k][1];
+                  b[j]:=zeros[k];
                 end if;
                 k:=k+1;
               end while;
@@ -224,34 +242,30 @@ Qp_points:=function(data:points:=[]);
       else // finite point
         inf:=false;
         if Fppoint[4] eq 0 then // x - point[1] local coordinate
+
           x:=Qp!Fppoint[1];
-          b:=[];
-          for j:=1 to d do
-            bj:=b0fun[j];
+          W0invx:=Transpose(Evaluate(W0^(-1),x));
+          ypowersmodp:=Vector(Fppoint[2])*ChangeRing(W0invx,FiniteField(p));
+          y:=Qp!ypowersmodp[2];
 
-            if not assigned data`minpolys or data`minpolys[1][1,j+1] eq 0 then
-              data:=update_minpolys(data,Fppoint[3],Fppoint[4]);
-            end if;
-            poly:=data`minpolys[1][1,j+1];
-
-            C:=Coefficients(poly);
-            D:=[];
-            for k:=1 to #C do
-              D[k]:=Evaluate(C[k],x); 
-            end for;
-            fy:=Qpy!Zpy!D;
-            zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
-
-            done:=false;
-            k:=1;
-            while not done and k le #zeros do
-              if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
-                done:=true;
-                b[j]:=zeros[k][1];
-              end if;
-              k:=k+1;
-            end while;
+          C:=Coefficients(Q);
+          D:=[];
+          for i:=1 to #C do
+            D[i]:=Evaluate(C[i],x);
           end for;
+          fy:=Qpy!Zpy!D;
+
+          y:=HenselLift(fy,y); // Hensel lifting
+          ypowers:=[];
+          ypowers[1]:=Qp!1;
+          for i:=2 to d do
+            ypowers[i]:=ypowers[i-1]*y;
+          end for;
+          ypowers:=Vector(ypowers);
+
+          W0x:=Transpose(Evaluate(W0,x));
+          b:=Eltseq(ypowers*W0x);
+
         else // x-point[1] not local coordinate
           index:=Fppoint[4];
           bindex:=Qp!Fppoint[2][index];
@@ -267,14 +281,20 @@ Qp_points:=function(data:points:=[]);
             D[k]:=Evaluate(C[k],bindex); 
           end for;
           fy:=Qpy!Zpy!D;
-          zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+          fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+          zeros:=[];
+          for j:=1 to #fac do
+            if Degree(fac[j][1]) eq 1 then
+              zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+            end if;
+          end for;
 
           done:=false;
           k:=1;
           while not done and k le #zeros do
-            if (Fp!zeros[k][1]-Fppoint[1] eq 0) then 
+            if (Fp!zeros[k]-Fppoint[1] eq 0) then 
               done:=true;
-              x:=zeros[k][1];
+              x:=zeros[k];
             end if;
             k:=k+1;
           end while;
@@ -295,14 +315,20 @@ Qp_points:=function(data:points:=[]);
                 D[k]:=Evaluate(C[k],bindex); 
               end for;
               fy:=Qpy!Zpy!D;
-              zeros:=Roots(fy); // Hensel lifting gives problems here, since Hensel condition not always satisfied
+              fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
+              zeros:=[];
+              for j:=1 to #fac do
+                if Degree(fac[j][1]) eq 1 then
+                  zeros:=Append(zeros,-Coefficient(fac[j][1],0)/Coefficient(fac[j][1],1));
+                end if;
+              end for;
 
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k][1]-Fppoint[2][j] eq 0) then 
+                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
                   done:=true;
-                  b[j]:=zeros[k][1];
+                  b[j]:=zeros[k];
                 end if;
                 k:=k+1;
               end while;

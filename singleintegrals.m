@@ -139,7 +139,7 @@ set_point:=function(x0,y0,data)
   y0powers:=Vector(y0powers);
   W0x0:=Transpose(Evaluate(W0,x0));
 
-  P`b:=y0powers*W0x0; // the values of the b_i^0 at P
+  P`b:=Eltseq(y0powers*W0x0); // the values of the b_i^0 at P
 
   return P;
 end function;
@@ -433,7 +433,7 @@ frobenius_pt:=function(P,data);
 
     W0x0:=Transpose(Evaluate(W0,x0));
   
-    b:=y0ppowers*W0x0;
+    b:=Eltseq(y0ppowers*W0x0);
 
   elif P`inf then // infinite point
   
@@ -566,7 +566,7 @@ teichmueller_pt:=function(P,data)
   y0newpowers:=Vector(y0newpowers);
 
   W0x0:=Transpose(Evaluate(W0,x0));
-  b:=y0newpowers*W0x0;
+  b:=Eltseq(y0newpowers*W0x0);
 
   P`x:=x0new;
   P`b:=b;
@@ -1377,9 +1377,13 @@ tiny_integrals_on_basis:=function(P1,P2,data:prec:=0,P:=0);
     error "the points do not lie in the same residue disk";
   end if;
 
-  if (Valuation(x1-x2)/Valuation(Parent(x1-x2)!p) ge N) and (Minimum([Valuation(b1[i]-b2[i])/Valuation(Parent(b1[i]-b2[i])!p):i in [1..d]]) ge N) then
-    return RSpace(K,#basis)!0,N*Degree(K);
+  if ((x1 eq x2) and (b1 eq b2)) then 
+    return RSpace(K,#basis)!0, N*Degree(K);
   end if;
+
+  if (Valuation(x1-x2)/Valuation(Parent(x1-x2)!p) ge N) and (Minimum([Valuation(b1[i]-b2[i])/Valuation(Parent(b1[i]-b2[i])!p):i in [1..d]]) ge N) then
+    return RSpace(K,#basis)!0, N*Degree(K);
+  end if; 
 
   if Degree(K) gt 1 then // P1 needs to be defined over Qp
     tinyPtoP2,NtinyPtoP2:=$$(P,P2,data);
@@ -1862,7 +1866,7 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   tinyS1toFS1,NS1toFS1:=tiny_integrals_on_basis(S1,FS1,data:P:=P1); 
   tinyS2toFS2,NFS2toS2:=tiny_integrals_on_basis(S2,FS2,data:P:=P2); 
 
-  NIP1P2:=Minimum([NP1toS1,NP2toS2,NS1toFS1,NFS2toS2]);
+  NIP1P2:=Minimum([NP1toS1,NP2toS2,NS1toFS1,NFS2toS2]);  
 
   // Evaluate all functions.
 
@@ -1895,11 +1899,12 @@ coleman_integrals_on_basis:=function(P1,P2,data:e:=1)
   assert Nround ge NIP1P2;                          // Check that rounding error is within error bound.
   
   NIP1P2:=Ceiling(NIP1P2);
+
   for i:=1 to #basis do
     IP1P2[i]:=IP1P2[i]+O(Parent(IP1P2[i])!p^(NIP1P2));
   end for;
 
-  return IP1P2,NIP1P2;
+  return IP1P2,NIP1P2;//,tinyP1toS1,NP1toS1,tinyP2toS2,NP2toS2,tinyS1toFS1,NS1toFS1,tinyS2toFS2,NFS2toS2,f0iS1,Nf0iS1,f0iS2,Nf0iS2,finfiS1,NfinfiS1,finfiS2,NfinfiS2,fendiS1,NfendiS1,fendiS2,NfendiS2;
 end function;
 
 

@@ -16,32 +16,36 @@ data:=coleman_data(Q,p,N);
 L,v:=effective_chabauty(data:bound:=1000,e:=50);
 
 L;							// Q-points found by effective Chabauty
-//[
-//    rec<recformat<x, b, inf, xt, bt, index> | 
-//        x := O(7^7),
-//        b := [ 1 + O(7^10), O(7^10), O(7^10) ],
-//        inf := true>,
-//    rec<recformat<x, b, inf, xt, bt, index> | 
-//        x := O(7^10),
-//        b := [ 1 + O(7^10), O(7^8), -3 + O(7^10) ],
-//        inf := true>
-//]
-
+/*
+[
+    rec<recformat<x, b, inf, xt, bt, index> | 
+        x := O(7^7),
+        b := [ 1 + O(7^10), O(7^10), O(7^10) ],
+        inf := true>,
+    rec<recformat<x, b, inf, xt, bt, index> | 
+        x := O(7^10),
+        b := [ 1 + O(7^10), O(7^8), -3 + O(7^10) ],
+        inf := true>
+]
+*/
 Q_points(data,1000);					// Q-points found by point search
-//[
-//    rec<recformat<x, b, inf, xt, bt, index> | 
-//        x := 0,
-//        b := [ 1 + O(7^10), 0, 0 ],
-//        inf := true>,
-//    rec<recformat<x, b, inf, xt, bt, index> | 
-//        x := 0,
-//        b := [ 1 + O(7^10), 0, -3 + O(7^10) ],
-//        inf := true>
-//]
-
+/*
+[
+    rec<recformat<x, b, inf, xt, bt, index> | 
+        x := 0,
+        b := [ 1 + O(7^10), 0, 0 ],
+        inf := true>,
+    rec<recformat<x, b, inf, xt, bt, index> | 
+        x := 0,
+        b := [ 1 + O(7^10), 0, -3 + O(7^10) ],
+        inf := true>
+]
+*/
 v;							// vanishing differentials
-//[
-//    [ 1 + O(7^9), O(7^9), O(7^9) ],
-//    [ O(7^9), 1 + O(7^9), O(7^9) ],
-//    [ O(7^9), O(7^9), 1 + O(7^9) ]
-//]
+/*
+[
+    [ 1 + O(7^9), O(7^9), O(7^9) ],
+    [ O(7^9), 1 + O(7^9), O(7^9) ],
+    [ O(7^9), O(7^9), 1 + O(7^9) ]
+]
+*/

@@ -1,9 +1,11 @@
-max_prec:=function(Q,p,N,g,W0,Winf,e0,einf);
+max_prec:=function(Q,p,N,g,W0,Winf,e0,einf:val:=0);
 
   // Compute the p-adic precision required for provable correctness
 
   d:=Degree(Q);
   W:=Winf*W0^(-1);
+
+  N:=N-val;
   
   Nmax:=N+Floor(log(p,-p*(ord_0_mat(W)+1)*einf));
   while (Nmax-Floor(log(p,p*(Nmax-1)*e0))-Floor(log(p,-(ord_inf_mat(W^(-1))+1)*einf)) lt N) do 
@@ -20,6 +22,8 @@ frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_
 
   // Compute the matrix of F_p on H^1(X) mod p^N with respect to 'basis'.
 
+  d:=Degree(Q);
+
   F:=ZeroMatrix(Rationals(),#basis,#basis);  
   f0list:=[];
   finflist:=[];
@@ -27,8 +31,9 @@ frobmatrix:=function(Q,p,N,Nmax,g,r,W0,Winf,G0,Ginf,frobmatb0r,red_list_fin,red_
 
   for i:=1 to #basis do
 
-    dif:=frobenius(basis[i],Q,p,Nmax,r,frobmatb0r);
-    dif:=convert_to_Qxzzinvd(dif,Q);
+    v:=Minimum([0] cat [Valuation(coef,p):coef in &cat[Coefficients(basis[i][j]):j in [1..d]]]); 
+    dif:=frobenius(p^(-v)*basis[i],Q,p,Nmax,r,frobmatb0r); // take out denominator at the start
+    dif:=Eltseq(p^v*Vector(convert_to_Qxzzinvd(dif,Q)));   // put back denominator at the end
 
     coefs,f0,finf,fend:=reduce_with_fs(dif,Q,p,N,Nmax,r,W0,Winf,G0,Ginf,red_list_fin,red_list_inf,basis,integrals,quo_map);
 
@@ -82,8 +87,9 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[])
   delta:=Floor(log(p,-(ord_0_mat(W)+1)*einf))+Floor(log(p,(Floor((2*g-2)/d)+1)*einf));
 
   basis,integrals,quo_map:=basis_coho(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,basis1,basis2);
+  v:=Minimum([0] cat [Valuation(x,p) : x in Eltseq(quo_map)] cat[Valuation(coef,3): coef in &cat([Coefficients(elt): elt in Eltseq(Matrix(basis))])]); // precision loss from denominator quo_map and basis
 
-  Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf);
+  Nmax:=max_prec(Q,p,N,g,W0,Winf,e0,einf:val:=v);
 
   frobmatb0r:=froblift(Q,p,Nmax-1,r,Delta,s,W0);
 

@@ -592,6 +592,14 @@ basis_coho:=function(Q,p,r,W0,Winf,G0,Ginf,J0,Jinf,T0inv,Tinfinv,useU,basis0,bas
     dim:=dimH1X;
   end if;
 
+  for i:=1 to dim do
+    valdenom:=0;
+    for j:=1 to dimE0 do
+      valdenom:=Minimum(valdenom,Valuation(b[i][j],p));
+    end for;
+    b[i]:=p^(-valdenom)*b[i];
+  end for; 
+
   matb:=Matrix(b);
   quo_map:=matb^(-1);
 

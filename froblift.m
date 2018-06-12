@@ -279,6 +279,7 @@ frobenius:=function(w,Q,p,N,r,frobmatb0r)
   
   d:=Degree(Q);
   Q:=R!Q;
+
   Sd:=RSpace(S,d);
 
   r:=(Ox!Coefficients(r)); 
@@ -298,7 +299,7 @@ frobenius:=function(w,Q,p,N,r,frobmatb0r)
 
   O,Ox,S,R:=getrings(p,N);
   Sd:=RSpace(S,d); 
-  frob:=p*(Sd!frob);
+  frob:=p*(Sd!frob); 
 
   return frob;   
 end function;

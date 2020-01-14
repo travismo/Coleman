@@ -2,7 +2,7 @@ Fp_points:=function(data);
 
   // Finds all points on the reduction mod p of the curve given by data
 
-  Q:=data`Q; p:=data`p; d:=Degree(Q);  W0:=data`W0; Winf:=data`Winf; 
+  Q:=data`Q; p:=data`p; d:=Degree(Q);  W0:=data`W0; Winf:=data`Winf;
 
   Fp:=FiniteField(p); Fpx:=RationalFunctionField(Fp); Fpxy:=PolynomialRing(Fpx);
   f:=Fpxy!0;
@@ -10,7 +10,7 @@ Fp_points:=function(data);
     for j:=0 to Degree(Coefficient(Q,i)) do
       f:=f+(Fp!Coefficient(Coefficient(Q,i),j))*Fpxy.1^i*Fpx.1^j;
     end for;
-  end for;  
+  end for;
   FFp:=FunctionField(f); // function field of curve mod p
 
   places:=Places(FFp,1);
@@ -49,7 +49,7 @@ Fp_points:=function(data);
           j:=j+1;
         end while;
       end if;
-      Fppts:=Append(Fppts,[*Evaluate(FFp!Fpx.1,places[i]),[Fp!Evaluate(b0modp[j],places[i]): j in [1..d]],false,index*]);    
+      Fppts:=Append(Fppts,[*Evaluate(FFp!Fpx.1,places[i]),[Fp!Evaluate(b0modp[j],places[i]): j in [1..d]],false,index*]);
     else
       if Valuation(FFp!(1/Fpx.1)-Evaluate(FFp!(1/Fpx.1),places[i]),places[i]) eq 1 then
         index:=0;
@@ -79,9 +79,9 @@ Qp_points:=function(data:points:=[]);
   // a Qp point on the curve is returned that reduces to it. Optionally,
   // an (incomplete) list pts can be specified by the user which will
   // then be completed.
-  
-  Q:=data`Q; p:=data`p; N:=data`N; r:=data`r; W0:=data`W0; Winf:=data`Winf; 
-  d:=Degree(Q); Fp:=FiniteField(p); 
+
+  Q:=data`Q; p:=data`p; N:=data`N; r:=data`r; W0:=data`W0; Winf:=data`Winf;
+  d:=Degree(Q); Fp:=FiniteField(p);
   Qx:=RationalFunctionField(RationalField()); Qxy:=PolynomialRing(Qx);
 
   Nwork:=Ceiling(N*1.5); // Look at this again, how much precision loss in Roots()?
@@ -95,7 +95,7 @@ Qp_points:=function(data:points:=[]);
     for j:=0 to Degree(Coefficient(Q,i)) do
       f:=f+Coefficient(Coefficient(Q,i),j)*Qxy.1^i*Qx.1^j;
     end for;
-  end for;  
+  end for;
   FF:=FunctionField(f); // function field of curve
 
   b0fun:=[];
@@ -126,15 +126,15 @@ Qp_points:=function(data:points:=[]);
         done:=true;
         P:=points[j];
       end if;
-      j:=j+1; 
+      j:=j+1;
     end while;
-    
+
     if not done then
-      
+
       if Fppoint[3] then // infinite point
-        
+
         inf:=true;
-        
+
         if Fppoint[4] eq 0 then // x - point[1] local coordinate
           x:=Qp!Fppoint[1];
           b:=[];
@@ -149,7 +149,7 @@ Qp_points:=function(data:points:=[]);
             C:=Coefficients(poly);
             D:=[];
             for k:=1 to #C do
-              D[k]:=Evaluate(C[k],x); 
+              D[k]:=Evaluate(C[k],x);
             end for;
             fy:=Qpy!Zpy!D;
             fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
@@ -163,7 +163,7 @@ Qp_points:=function(data:points:=[]);
             done:=false;
             k:=1;
             while not done and k le #zeros do
-              if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
+              if (Fp!zeros[k]-Fppoint[2][j] eq 0) then
                 done:=true;
                 b[j]:=zeros[k];
               end if;
@@ -182,7 +182,7 @@ Qp_points:=function(data:points:=[]);
           C:=Coefficients(poly);
           D:=[];
           for k:=1 to #C do
-            D[k]:=Evaluate(C[k],bindex); 
+            D[k]:=Evaluate(C[k],bindex);
           end for;
           fy:=Qpy!Zpy!D;
           fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
@@ -196,7 +196,7 @@ Qp_points:=function(data:points:=[]);
           done:=false;
           k:=1;
           while not done and k le #zeros do
-            if (Fp!zeros[k]-Fppoint[1] eq 0) then 
+            if (Fp!zeros[k]-Fppoint[1] eq 0) then
               done:=true;
               x:=zeros[k];
             end if;
@@ -216,7 +216,7 @@ Qp_points:=function(data:points:=[]);
               C:=Coefficients(poly);
               D:=[];
               for k:=1 to #C do
-                D[k]:=Evaluate(C[k],bindex); 
+                D[k]:=Evaluate(C[k],bindex);
               end for;
               fy:=Qpy!Zpy!D;
               fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
@@ -230,14 +230,14 @@ Qp_points:=function(data:points:=[]);
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
+                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then
                   done:=true;
                   b[j]:=zeros[k];
                 end if;
                 k:=k+1;
               end while;
             end if;
-          end for; 
+          end for;
         end if;
 
       else // finite point
@@ -280,7 +280,7 @@ Qp_points:=function(data:points:=[]);
               C:=Coefficients(poly);
               D:=[];
               for k:=1 to #C do
-                D[k]:=Evaluate(C[k],x); 
+                D[k]:=Evaluate(C[k],x);
               end for;
               fy:=Qpy!Zpy!D;
               fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
@@ -294,7 +294,7 @@ Qp_points:=function(data:points:=[]);
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
+                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then
                   done:=true;
                   b[j]:=zeros[k];
                 end if;
@@ -315,7 +315,7 @@ Qp_points:=function(data:points:=[]);
           C:=Coefficients(poly);
           D:=[];
           for k:=1 to #C do
-            D[k]:=Evaluate(C[k],bindex); 
+            D[k]:=Evaluate(C[k],bindex);
           end for;
           fy:=Qpy!Zpy!D;
           fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
@@ -329,7 +329,7 @@ Qp_points:=function(data:points:=[]);
           done:=false;
           k:=1;
           while not done and k le #zeros do
-            if (Fp!zeros[k]-Fppoint[1] eq 0) then 
+            if (Fp!zeros[k]-Fppoint[1] eq 0) then
               done:=true;
               x:=zeros[k];
             end if;
@@ -349,7 +349,7 @@ Qp_points:=function(data:points:=[]);
               C:=Coefficients(poly);
               D:=[];
               for k:=1 to #C do
-                D[k]:=Evaluate(C[k],bindex); 
+                D[k]:=Evaluate(C[k],bindex);
               end for;
               fy:=Qpy!Zpy!D;
               fac:=Factorisation(fy); // Roots has some problems that Factorisation does not
@@ -363,7 +363,7 @@ Qp_points:=function(data:points:=[]);
               done:=false;
               k:=1;
               while not done and k le #zeros do
-                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then 
+                if (Fp!zeros[k]-Fppoint[2][j] eq 0) then
                   done:=true;
                   b[j]:=zeros[k];
                 end if;
@@ -372,7 +372,7 @@ Qp_points:=function(data:points:=[]);
             end if;
           end for;
         end if;
-        
+
       end if;
 
       P:=set_bad_point(x,b,inf,data);
@@ -382,9 +382,9 @@ Qp_points:=function(data:points:=[]);
     if is_bad(P,data) and not is_very_bad(P,data) then
       P:=find_bad_point_in_disk(P,data);
     end if;
-    
+
     Qppts:=Append(Qppts,P);
-  
+
   end for;
 
   return Qppts,data;
@@ -394,7 +394,7 @@ end function;
 
 Q_points:=function(data,bound);
 
-  // Returns a list (not guaranteed to be complete) of Q-rational points 
+  // Returns a list (not guaranteed to be complete) of Q-rational points
   // upto height bound on the curve given by data.
 
   Q:=data`Q; p:=data`p; N:=data`N; r:=data`r; W0:=data`W0; Winf:=data`Winf;
@@ -404,7 +404,7 @@ Q_points:=function(data,bound);
 
   A2:=AffineSpace(RationalField(),2);
   Qxy:=PolynomialRing(RationalField(),2);
-  
+
   QA2:=Qxy!0;
   C:=Coefficients(Q);
   for i:=1 to #C do
@@ -413,7 +413,7 @@ Q_points:=function(data,bound);
       QA2:=QA2+D[j]*(Qxy.1)^(j-1)*(Qxy.2)^(i-1);
     end for;
   end for;
-  
+
   X:=Scheme(A2,QA2);
   pts:=PointSearch(X,bound);
   xvalues:=[];
@@ -480,7 +480,7 @@ Q_points:=function(data,bound);
         end if;
       end for;
     end if;
-  end for; 
+  end for;
 
   places:=InfinitePlaces(FF);
   for i:=1 to #places do
@@ -493,7 +493,7 @@ Q_points:=function(data,bound);
       P:=set_bad_point(x,b,true,data);
       pointlist:=Append(pointlist,P);
     end if;
-  end for; 
+  end for;
 
   return pointlist;
 
@@ -504,7 +504,7 @@ my_roots_Zpt:=function(f)
 
   // Custom function to compute the roots of a polynomial
   // f over Z_p since the Magma intrinsic requires the leading
-  // coefficient to be a unit (which is usually not the case 
+  // coefficient to be a unit (which is usually not the case
   // for us).
 
   if f eq 0 then
@@ -516,14 +516,16 @@ my_roots_Zpt:=function(f)
   Fp:=ResidueClassField(Zp);
   Fps:=PolynomialRing(Fp);
   p:=Characteristic(Fp);
-  
+
   Nf:=Precision(Zp);
   val:=Minimum([Valuation(e):e in Eltseq(f)]);
   Zp:=ChangePrecision(Zp,Nf-val);
   Zps:=PolynomialRing(Zp);
-  
+
   f:=Zps![e/p^val :e in Eltseq(f)];
 
+
+  // find lcindex, first nonzero coefficient of f
   i:=0;
   zero:=false;
   done:=false;
@@ -534,6 +536,7 @@ my_roots_Zpt:=function(f)
     end if;
     i:=i+1;
   end while;
+  // update f = f / s^(lcindex)
   if lcindex gt 0 then
     coefs:=Coefficients(f);
     for j:=1 to lcindex do
@@ -555,7 +558,7 @@ my_roots_Zpt:=function(f)
     z:=Zproots[i][1];
     Nz:=Zproots[i][2];
     v1:=Valuation(Evaluate(f,z));
-    v2:=Valuation(Evaluate(Derivative(f),z)); 
+    v2:=Valuation(Evaluate(Derivative(f),z));
     if not (v1 gt 2*v2 and Nz ge v2+1) and (v1 lt Nf-val) then
       Zproots:=Remove(Zproots,i);
       znew:=z+p^Nz*Zps.1;
@@ -600,12 +603,12 @@ basis_kernel:=function(A)
 
   // Compute a basis for the kernel of the matrix A over Qp
 
-  val:=Minimum([0] cat [Valuation(x) : x in Eltseq(A)]); 
+  val:=Minimum([0] cat [Valuation(x) : x in Eltseq(A)]);
   Qp:=BaseRing(A);
   N:=Precision(Qp);
   p:=Prime(Qp);
 
-  A:=p^(-val)*A; 
+  A:=p^(-val)*A;
   N:=N-val;
 
   Zp:=pAdicRing(p,N);
@@ -617,8 +620,8 @@ basis_kernel:=function(A)
       matpN[i,j]:=Zp!A[i,j];
     end for;
   end for;
-  S,P1,P2:=SmithForm(matpN);            
- 
+  S,P1,P2:=SmithForm(matpN);
+
   b:=[];
   for i:=Rank(S)+1 to row do
     Append(~b,P1[i]);
@@ -626,7 +629,7 @@ basis_kernel:=function(A)
   if #b gt 0 then
     b:=RowSequence(HermiteForm(Matrix(b)));
   end if;
- 
+
   b:=RowSequence(ChangeRing(Matrix(b),Qp));
 
   return b;
@@ -635,11 +638,11 @@ end function;
 
 vanishing_differentials:=function(points,data:e:=1);
 
-  // Compute the regular one forms of which the 
+  // Compute the regular one forms of which the
   // integrals vanish between all points in points.
 
   Q:=data`Q; p:=data`p;
-  
+
   g:=genus(Q,p);
 
   IP1Pi:=[];
@@ -669,10 +672,10 @@ end function;
 
 zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
 
-  // Find all common zeros of the integrals of the v[i] (vectors 
+  // Find all common zeros of the integrals of the v[i] (vectors
   // of length g) from P1 to points in the residue disk of P2.
 
-  Q:=data`Q; p:=data`p; N:=data`N; 
+  Q:=data`Q; p:=data`p; N:=data`N;
 
   g:=genus(Q,p);
 
@@ -697,11 +700,21 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
     h:=Zpt!0;
     for j:=0 to Degree(f) do
       h:=h+IntegerRing()!(p^j*(RationalField()!Coefficient(f,j)))*Zpt.1^j;
-    end for; 
+    end for;
     zeros:=my_roots_Zpt(h);
+    // NEW: Check that all nonzero roots of h are simple roots
+    for i := 1 to #zeros do
+        z := zeros[i][1];
+        if IsZero(z) then
+            continue;
+        else
+            if  IsZero(Evaluate(Derivative(h), z)) then
+                error "Nonsimple root of Coleman function found";
+            end if;
+        end if;
+    end for;
     zerolist:=Append(zerolist,zeros);
   end for;
-
   zeroseq:=[];
   for i:=1 to #zerolist[1] do
     allzero:=true;
@@ -718,15 +731,15 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
     end for;
     if allzero then
       zeroseq:=Append(zeroseq,zerolist[1][i][1]);
-    end if; 
+    end if;
   end for;
 
   pointlist:=[];
   for i:=1 to #zeroseq do
     z:=zeroseq[i];
-    x:=Evaluate(xt,p*z);         
-    b:=Eltseq(Evaluate(bt,p*z)); 
-    inf:=P2`inf; 
+    x:=Evaluate(xt,p*z);
+    b:=Eltseq(Evaluate(bt,p*z));
+    inf:=P2`inf;
     P:=set_bad_point(x,b,P2`inf,data);
     pointlist:=Append(pointlist,P);
   end for;
@@ -749,8 +762,8 @@ effective_chabauty:=function(data:Qpoints:=[],bound:=0,e:=1);
       error "have to specify either Qpoints or a bound for search";
     end if;
     Qpoints:=Q_points(data,bound);
-  end if; 
-   
+  end if;
+
   for i:=1 to #Qpoints do
     _,index:=local_data(Qpoints[i],data);
     data:=update_minpolys(data,Qpoints[i]`inf,index);
@@ -759,13 +772,13 @@ effective_chabauty:=function(data:Qpoints:=[],bound:=0,e:=1);
         xt,bt,index:=local_coord(Qpoints[i],tadicprec(data,e),data);
         Qpoints[i]`xt:=xt;
         Qpoints[i]`bt:=bt;
-        Qpoints[i]`index:=index; 
+        Qpoints[i]`index:=index;
       end if;
     else
       xt,bt,index:=local_coord(Qpoints[i],tadicprec(data,1),data);
       Qpoints[i]`xt:=xt;
       Qpoints[i]`bt:=bt;
-      Qpoints[i]`index:=index; 
+      Qpoints[i]`index:=index;
     end if;
   end for;
 
@@ -836,7 +849,7 @@ torsion_packet:=function(P,data:bound:=0,e:=1);
   end if;
 
   if bound ne 0 then
-    Qpoints:=Q_points(data,bound); 
+    Qpoints:=Q_points(data,bound);
     Qppoints,data:=Qp_points(data:points:=Qpoints);
   else
     Qppoints,data:=Qp_points(data);
@@ -857,7 +870,7 @@ torsion_packet:=function(P,data:bound:=0,e:=1);
       Qppoints[i]`index:=index;
     end if;
   end for;
-  
+
   pointlist:=[];
   for i:=1 to #Qppoints do
     pts:=zeros_on_disk(P,Qppoints[i],v,data:e:=e);

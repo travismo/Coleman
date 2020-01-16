@@ -692,6 +692,8 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
   Zpt:=PolynomialRing(Zp);
 
   zerolist:=[];
+  // NEW: keep track of polys for testing simple roots
+  polys := [];
   for i:=1 to #v do
     f:=Parent(tinyP2toz[1])!0;
     for j:=1 to g do
@@ -701,20 +703,23 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
     for j:=0 to Degree(f) do
       h:=h+IntegerRing()!(p^j*(RationalField()!Coefficient(f,j)))*Zpt.1^j;
     end for;
+    Append(~polys, h);
     zeros:=my_roots_Zpt(h);
-    // NEW: Check that all nonzero roots of h are simple roots
-    for i := 1 to #zeros do
-        z := zeros[i][1];
-        if IsZero(z) then
-            continue;
-        else
-            if  IsZero(Evaluate(Derivative(h), z)) then
-                error "Nonsimple root of Coleman function found";
-            end if;
-        end if;
-    end for;
     zerolist:=Append(zerolist,zeros);
   end for;
+  // NEW: Check that all nonzero roots of h are simple roots
+  for zeros in zerolist do
+    for z in zeros do
+      vals := [];
+      for h in polys do
+        Append(~vals, Evaluate(Derivative(h), z[1]));
+      end for;
+      if IsZero(Vector(vals)) then
+        error "Nonsimple root of Coleman functions found";
+      end if;
+    end for;
+  end for;
+
   zeroseq:=[];
   for i:=1 to #zerolist[1] do
     allzero:=true;
@@ -813,7 +818,6 @@ effective_chabauty:=function(data:Qpoints:=[],bound:=0,e:=1);
       pointlist:=Append(pointlist,pts[j]);
     end for;
   end for;
-
   return pointlist, v;
 
 end function;

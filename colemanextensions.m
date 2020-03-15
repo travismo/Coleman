@@ -840,178 +840,6 @@ div_local_coord:=function(P,prec,data);
 
 end function;
 
-my_mult_one_roots_Zpt:=function(f)
-
-  // Custom function to compute the roots of a polynomial
-  // f over Z_p since the Magma intrinsic requires the leading
-  // coefficient to be a unit (which is usually not the case
-  // for us). We additionally check that the multiplicity of
-  // a root is 1.
-
-  if f eq 0 then
-    error "Polynomial has to be non-zero";
-  end if;
-
-  Zps:=Parent(f);
-  Zp:=BaseRing(Zps);
-  Fp:=ResidueClassField(Zp);
-  Fps:=PolynomialRing(Fp);
-  p:=Characteristic(Fp);
-
-  Nf:=Precision(Zp);
-  val:=Minimum([Valuation(e):e in Eltseq(f)]);
-  Zp:=ChangePrecision(Zp,Nf-val);
-  Zps:=PolynomialRing(Zp);
-
-  f:=Zps![e/p^val :e in Eltseq(f)];
-
-  i:=0;
-  zero:=false;
-  done:=false;
-  while not done do
-    if Coefficient(f,i) ne 0 then
-      lcindex:=i;
-      done:=true;
-    end if;
-    i:=i+1;
-  end while;
-  if lcindex gt 0 then
-    coefs:=Coefficients(f);
-    for j:=1 to lcindex do
-      coefs:=Remove(coefs,1);
-    end for;
-    f:=Zps!coefs;
-    zero:=true;
-  end if;
-
-  modproots:=Roots(Fps!f);
-  Fproots:=[];
-  for i:=1 to #modproots do
-    Fproots[i]:=modproots[i][1];
-  end for;
-  Zproots:=[[*Zp!e,1*]:e in Fproots];
-
-  i:=1;
-  while i le #Zproots do
-    z:=Zproots[i][1];
-    Nz:=Zproots[i][2];
-    v1:=Valuation(Evaluate(f,z));
-    v2:=Valuation(Evaluate(Derivative(f),z));
-    if not (v1 gt 2*v2 and Nz ge v2+1) and (v1 lt Nf-val) then
-      Zproots:=Remove(Zproots,i);
-      znew:=z+p^Nz*Zps.1;
-      g:=Fps![e/p^(Nz): e in Coefficients(Evaluate(f,znew))];
-      if g ne 0 then
-        Fproots:=Roots(g);
-      else
-        Fproots:=[[e,1]: e in Fp];
-      end if;
-      for j:=1 to #Fproots do
-        Zproots:=Insert(Zproots,i,[*z+p^Nz*(Zp!Fproots[j][1]),Nz+1*]);
-      end for;
-    else
-      i:=i+1;
-    end if;
-  end while;
-
-  for i:=1 to #Zproots do
-    z:=Zproots[i][1];
-    Nz:=Zproots[i][2];
-    v1:=Valuation(Evaluate(f,z));
-    v2:=Valuation(Evaluate(Derivative(f),z));
-    if (v1 lt Nf-val) then
-      z:=HenselLift(f,z);
-      Zproots[i][1]:=z;
-      Zproots[i][2]:=Nf-val-v2;
-    else
-      Zproots[i][2]:=Nf-val-v2;
-    end if;
-  end for;
-
-  if zero then
-    Zproots:=Append(Zproots,[*Zp!0,Nf-val*]);
-  end if;
-
-  for i := 1 to #Zproots do
-      if IsZero(Evaluate(Derivative(f), Zproots[i][1])) then
-          error "Multiple root detected";
-      end if;
-  end for;
-
-  return Zproots;
-
-end function;
-
-zeros_mult_one_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
-
-  // Find all common zeros of the integrals of the v[i] (vectors
-  // of length g) from P1 to points in the residue disk of P2.
-  // New: use my_mult_one_roots_Zpt to make sure that we do not
-  // find multiple roots.
-
-  Q:=data`Q; p:=data`p; N:=data`N;
-
-  g:=genus(Q,p);
-
-  if integral eq [**] then
-    IP1P2,NIP1P2:=coleman_integrals_on_basis(P1,P2,data:e:=e);
-  else
-    IP1P2:=integral[1];
-    NIP1P2:=integral[2];
-  end if;
-  tinyP2toz,xt,bt,NP2toz:=tiny_integrals_on_basis_to_z(P2,data:prec:=prec);
-
-  Nv:=Precision(Parent(v[1][1]));
-  Zp:=pAdicRing(p,Nv);
-  Zpt:=PolynomialRing(Zp);
-
-  zerolist:=[];
-  for i:=1 to #v do
-    f:=Parent(tinyP2toz[1])!0;
-    for j:=1 to g do
-      f:=f+v[i][j]*(IP1P2[j]+tinyP2toz[j]);
-    end for;
-    h:=Zpt!0;
-    for j:=0 to Degree(f) do
-      h:=h+IntegerRing()!(p^j*(RationalField()!Coefficient(f,j)))*Zpt.1^j;
-    end for;
-    zeros:=my_mult_one_roots_Zpt(h);
-    zerolist:=Append(zerolist,zeros);
-  end for;
-
-  zeroseq:=[];
-  for i:=1 to #zerolist[1] do
-    allzero:=true;
-    for j:=2 to #zerolist do
-      found:=false;
-      for k:=1 to #zerolist[j] do
-        if Valuation(zerolist[j][k][1]-zerolist[1][i][1]) ge Minimum(zerolist[j][k][2],zerolist[1][i][2]) then
-          found:=true;
-        end if;
-      end for;
-      if not found then
-        allzero:=false;
-      end if;
-    end for;
-    if allzero then
-      zeroseq:=Append(zeroseq,zerolist[1][i][1]);
-    end if;
-  end for;
-
-  pointlist:=[];
-  for i:=1 to #zeroseq do
-    z:=zeroseq[i];
-    x:=Evaluate(xt,p*z);
-    b:=Eltseq(Evaluate(bt,p*z));
-    inf:=P2`inf;
-    P:=set_bad_point(x,b,P2`inf,data);
-    pointlist:=Append(pointlist,P);
-  end for;
-
-  return pointlist;
-
-end function;
-
 
 
 effective_chabauty_with_Qdiv:=function(data:Qpoints:=[],bound:=0,e:=1);
@@ -1082,9 +910,9 @@ effective_chabauty_with_Qdiv:=function(data:Qpoints:=[],bound:=0,e:=1);
     P1 := set_bad_point(x1,b,Qpoints[1]`inf,data);
 
     if k lt 2 then
-      pts:=zeros_mult_one_on_disk(P1,Qppoints[i],v,data:e:=e);
+      pts:=zeros_on_disk(P1,Qppoints[i],v,data:e:=e);
     else
-      pts:=zeros_mult_one_on_disk(P1,Qppoints[i],v,data:e:=e,integral:=[*IP1Pi[k-1],NIP1Pi[k-1]*]);
+      pts:=zeros_on_disk(P1,Qppoints[i],v,data:e:=e,integral:=[*IP1Pi[k-1],NIP1Pi[k-1]*]);
     end if;
     for j:=1 to #pts do
       pointlist:=Append(pointlist,pts[j]);
@@ -1260,4 +1088,56 @@ compute_integrals := function(data,rat_points,Lpoints,e)
   end for;
   return IP1Pi;
 
+end function;
+
+// Compute all integrals against basis differentials
+// from a point P1 (output of set_bad_point) to a
+// divisor Q (output of set_bad_div).
+
+function coleman_integrals_on_basis_to_div(P1, Q, data:e:=1)
+    P1 := set_bad_point(P1`x[1],P1`b[1],P1`inf,data);
+    xj := (Q`x)[1];
+    b := (Q`b)[1];
+    Qj := set_bad_point(xj,b,false,data);
+    C, N := coleman_integrals_on_basis(P1,Qj,data:e:=e);
+    for j in [2..#Q`x] do
+      xj := (Q`x)[j];
+      b := (Q`b)[j];
+      Qj := set_bad_point(xj,b,false,data);
+      Cj, Nj := coleman_integrals_on_basis(P1,Qj,data:e:=e);
+      C := C + Cj;
+      Ni := Minimum(N,Nj);
+    end for;
+    return C, N;
+end function;
+
+// decide if divisor g is a torsion divisor using coleman integrals.
+
+function is_torsion(data, e, g)
+    if Degree(g) eq 1 then
+        Qpoints := Q_points(data, 1000);
+        for P in Qpoints do
+            if P`inf then
+                infty := P;
+            elif P`x eq Roots(g)[1][1] then
+                Q := P;
+            end if;
+        end for;
+        ints := coleman_integrals_on_basis(infty, Q, data:e:=e);
+    else
+        Qpoints := Q_divs(data, 1000, g);
+        for P in Qpoints do
+            if P`inf then
+                infty := P;
+            elif P`divisor then
+                Q := P;
+            end if;
+        end for;
+        ints := coleman_integrals_on_basis_to_div(infty, Q, data:e:=e);
+    end if;
+    g:=data`g;
+    I:=ElementToSequence(ints);
+    Ibasis := I[1..g];
+    is_tor := IsZero(Ibasis);
+    return is_tor;
 end function;

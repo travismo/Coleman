@@ -712,7 +712,7 @@ zeros_on_disk:=function(P1,P2,v,data:prec:=0,e:=1,integral:=[**]);
     for z in zeros do
       vals := [];
       for h in polys do
-        Append(~vals, Evaluate(Derivative(h), z[1]));
+        Append(~vals, Evaluate(Derivative(h)^2, z[1]));
       end for;
       if IsZero(Vector(vals)) then
         error "Nonsimple root of Coleman functions found";

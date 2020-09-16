@@ -523,110 +523,48 @@ my_roots_Zpt:=function(f)
 
   f:=Zps![e/p^val :e in Eltseq(f)];
 
-
-  // find lcindex, first nonzero coefficient of f
-  i:=0;
-  zero:=false;
-  done:=false;
-  while not done do
-    if Coefficient(f,i) ne 0 then
-      lcindex:=i;
-      done:=true;
-    end if;
-    i:=i+1;
-  end while;
-  // update f = f / s^(lcindex)
-  if lcindex gt 0 then
-    coefs:=Coefficients(f);
-    for j:=1 to lcindex do
-      coefs:=Remove(coefs,1);
-    end for;
-    f:=Zps!coefs;
-    zero:=true;
-  end if;
-  
   modproots:=Roots(Fps!f);
   Fproots:=[];
   for i:=1 to #modproots do
     Fproots[i]:=modproots[i][1];
   end for;
-  Zproots:=[[*Zp!e,1*]:e in Fproots];
-
-  i:=1;
-  while i le #Zproots do
-    z:=Zproots[i][1];
-    Nz:=Zproots[i][2];
-    v1:=Valuation(Evaluate(f,z));
-    v2:=Valuation(Evaluate(Derivative(f),z));
-    // Nz is the largest positive integer i such that 
+  candidates:=[[*Zp!e,1*]:e in Fproots];
+  Zproots := [];
+  while #candidates gt 0 do
+    // depth-first-search for roots of f.
+    candidate := candidates[1];
+    z:=candidate[1];
+    Nz:=candidate[2];
+    // Nz is the largest positive integer i such that
     // we have verified that z is a root modulo p^i.
-    // If Nz < v2 + 1, then (assuming we can hensel lift 
-    // z as a root of f) Hensel's Lemma tells us we can get 
-    // at least v2+1 'bits' of precision for a lift of z. Thus, 
-    // we continue lifting. OR, if v1 < Nf-val, this means that 
-    // while z is a root of f mod p^i, it is not a rood of f mod p^Nf-val. 
-    // This means we should find any values for s such that z+s*p^Nz are 
-    // roots of f.
-    // Consider the example p=5, Zp=pAdicRing(5,10),
-    //  f = (x-2)*(x^2+1).
-    //   At the start of 
-    // this loop, we have Zproots=[[2,1],[3,1]]. Then z=2, Nz=1, v1=10, v2=1. 
-    // Then we enter the below if statement. znew = 2+5*s, and 
-    // f(znew) = (5*s) * (4 + 4*5*s + 5^2*s^2 + 1) = 5^2*s*(1+4*s+5*s^2). 
-    // Then f(znew) is not identically zero in Zp<x>, so we divide out by 5^2 
-    // to get s*(1+4s+5*s^2) which, mod 5, has the roots 0 and 1.
-    // After the below if statement finishes, Zproots = [[7,2],[2,2],[3,1]].
-    // The mod 5^2 root of 7 will be continually lifted to a root of x^2 + 1, 
-    // while the root [2,2] now satisfies Nz=2 >= v2+1 = 2. This means we can 
-    // ignore it, and continue to [3,1], as [2,2] now satisfies Hensel's Lemma.    
-    if (Nz lt v2 + 1) or (v1 lt Nf-val) then 
-      print(Zproots);
-      znew:=z+p^Nz*Zps.1;
-      g:=Evaluate(f, znew);
-      if g ne 0 then
-        gval:=Minimum([Valuation(e) : e in Coefficients(g)]); 
-        g:=Fps![e/p^(gval): e in Coefficients(Evaluate(f,znew))];
-        Fproots:=Roots(g);
-        Zproots:=Remove(Zproots,i);
-        for j:=1 to #Fproots do
-          Zproots:=Insert(Zproots,i,[*z+p^Nz*(Zp!Fproots[j][1]),Nz+1*]);
-        end for;
-      else
-        // not enough precision to continue lifting.
-	// We will 
-	// return [z, Nz] as a root of f (note that we only know it is a 
-	// root of f mod p^Nz, and we make no guaruntee that it satisfies 
-	// Hensel's Lemma. Essentially we have 'run out' of precision 
-	// in the coefficients of f to continue lifting the root z. 
-	// We increment i and move on to the next potential root. 
-        i:=i+1;
-      end if;
+    Remove(~candidates, 1);
+    znew:=z+p^Nz*Zps.1;
+    g:=Evaluate(f, znew);
+    if g ne 0 then
+      // compute all lifts of z to roots of f mod p^(Nz+1)
+      gval:=Minimum([Valuation(e) : e in Coefficients(g)]);
+      g:=Fps![e/p^(gval): e in Coefficients(g)];
+      Fproots:=Roots(g);
+      for j:=1 to #Fproots do
+        candidates:=Insert(candidates,1,[*z+p^Nz*(Zp!Fproots[j][1]),Nz+1*]);
+      end for;
     else
-      i:=i+1;
+      // not enough precision to continue lifting.
+      // We will
+      // return [z, Nz] as a root of f (note that we now know it is a
+      // root of f mod p^N-val, and we make no guaruntee that it satisfies
+      // Hensel's Lemma. Essentially we have 'run out' of precision
+      // in the coefficients of f to continue lifting the root z.
+      Append(~Zproots, candidate);
     end if;
   end while;
 
-  for i:=1 to #Zproots do
-    z:=Zproots[i][1];
-    Nz:=Zproots[i][2];
-    v1:=Valuation(Evaluate(f,z));
-    v2:=Valuation(Evaluate(Derivative(f),z));
-    if (v1 lt Nf-val) then
-      z:=HenselLift(f,z);
-      Zproots[i][1]:=z;
-      Zproots[i][2]:=Nf-val-v2;
-    else
-      Zproots[i][2]:=Nf-val-v2;
-    end if;
-  end for;
 
-  if zero then
-    Zproots:=Append(Zproots,[*Zp!0,Nf-val*]);
-  end if;
- 
   return Zproots;
 
 end function;
+
+
 
 basis_kernel:=function(A)
 

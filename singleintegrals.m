@@ -460,8 +460,8 @@ frobenius_pt:=function(P,data);
 
       C:=Coefficients(poly);
       D:=[];
-      for i:=1 to #C do
-        D[i]:=Evaluate(C[i],x0p);
+      for j:=1 to #C do
+        D[j]:=Evaluate(C[j],x0p); 
       end for;
       fy:=Ky!D;
 
@@ -503,8 +503,8 @@ frobenius_pt:=function(P,data);
 
       C:=Coefficients(poly);
       D:=[];
-      for i:=1 to #C do
-        D[i]:=Evaluate(C[i],x0p);
+      for j:=1 to #C do
+        D[j]:=Evaluate(C[j],x0p); 
       end for;
       fy:=Ky!D;
 
@@ -1283,8 +1283,8 @@ find_bad_point_in_disk:=function(P,data);
       poly:=minpoly(xfun,bfun[i]);
       C:=Coefficients(poly);
       D:=[];
-      for i:=1 to #C do
-        D[i]:=Evaluate(C[i],x0);
+      for j:=1 to #C do
+        D[j]:=Evaluate(C[j],x0); 
       end for;
       fy:=Ky!D;
       fac:=Factorisation(fy);
@@ -1327,8 +1327,8 @@ find_bad_point_in_disk:=function(P,data);
         poly:=minpoly(bindex,bfun[i]);
         C:=Coefficients(poly);
         D:=[];
-        for i:=1 to #C do
-          D[i]:=Evaluate(C[i],b[index]);
+        for j:=1 to #C do
+          D[j]:=Evaluate(C[j],b[index]);
         end for;
         fy:=Ky!D;
         fac:=Factorisation(fy); // Roots has some problems that Factorisation does not

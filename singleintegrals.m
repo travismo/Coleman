@@ -53,8 +53,17 @@ coleman_data:=function(Q,p,N:useU:=false,basis0:=[],basis1:=[],basis2:=[])
   // Returns the Coleman data of (the projective nonsingular model of) the curve defined
   // by Q at p to p-adic precision N.
 
+
+  if not IsPrime(p) then
+    error "p is not prime";
+  end if;
+
   if not IsIrreducible(Q) then
     error "Curve is not irreducible";
+  end if;
+
+  if not LeadingCoefficient(Q) eq 1 then
+    error "Equation is not monic in y";
   end if;
 
   d:=Degree(Q);
